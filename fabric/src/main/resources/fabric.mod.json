@@ -5,18 +5,26 @@
     "name": "${mod_name}",
     "description": "${description}",
     "authors": [
-        "${mod_author}"
+      {
+        "name": "sylvxa",
+        "contact": {
+          "email": "me@sylvie.lol",
+          "homepage": "https://sylvie.lol"
+        }
+      }
     ],
     "contact": {
-        "homepage": "https://fabricmc.net/",
-        "sources": "https://github.com/FabricMC/fabric-example-mod"
+      "repo": "https://github.com/sylvxa/Dissonance",
+      "homepage": "https://modrinth.com/project/dissonance",
+      "issues": "https://github.com/sylvxa/dissonance/issues",
+      "discord": "https://discord.gg/5qzrB98sBA"
     },
     "license": "${license}",
     "icon": "${mod_id}.png",
     "environment": "*",
     "entrypoints": {
         "main": [
-            "com.example.examplemod.ExampleMod"
+          "lol.sylvie.dissonance.FabricDissonance"
         ]
     },
     "mixins": [
@@ -28,9 +36,6 @@
         "fabric-api": "*",
         "minecraft": "~${minecraft_version}",
         "java": ">=${java_version}"
-    },
-    "suggests": {
-        "another-mod": "*"
     }
 }
   
