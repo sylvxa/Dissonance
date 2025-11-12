@@ -6,7 +6,6 @@ import net.minecraft.world.entity.player.Player;
 public interface IPlatformHelper {
     String getPlatformName();
 
-    boolean hasPermission(ServerPlayer player, String node, boolean defaultValue);
     boolean hasPermission(ServerPlayer player, String node, int defaultValue);
 
     boolean isDevelopmentEnvironment();

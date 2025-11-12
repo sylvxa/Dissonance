@@ -6,17 +6,23 @@ import lol.sylvie.dissonance.Constants;
 import lol.sylvie.dissonance.config.DissonanceConfig;
 import lol.sylvie.dissonance.discord.DiscordClient;
 import lol.sylvie.dissonance.discord.command.DiscordCommands;
+import lol.sylvie.dissonance.discord.proximity.DiscordProximity;
 import lol.sylvie.dissonance.platform.Services;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.ISnowflake;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.events.guild.GuildLeaveEvent;
+import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
+import net.dv8tion.jda.api.events.guild.voice.GuildVoiceUpdateEvent;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.NameAndId;
 import net.minecraft.world.entity.player.Player;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
@@ -28,14 +34,16 @@ import java.util.stream.Collectors;
 
 // There's so much repeated code here
 // I suck at SQL
-public class DiscordLinking {
+public class DiscordLinking extends ListenerAdapter {
     public static Connection CONNECTION;
     public static HashMap<String, Pair<Long, NameAndId>> LINK_CODES = new HashMap<>();
     public static int LINK_CODE_LIFESPAN = 5 * 60 * 1000;
 
-    public static void init(MinecraftServer server) throws SQLException {
+    public static HashMap<UUID, String> MC_TO_DISCORD_CACHE = new HashMap<>();
+
+    public static boolean init(MinecraftServer server) throws SQLException {
         Guild guild = getGuild();
-        if (guild == null) return;
+        if (guild == null) return false;
         Path path = server.getServerDirectory().resolve("config");
 
         CONNECTION = DriverManager.getConnection("jdbc:sqlite:" + path.resolve("dissonance.db").toAbsolutePath());
@@ -44,11 +52,13 @@ public class DiscordLinking {
         }
 
         DiscordCommands.register(guild);
+        DiscordProximity.init();
+        return true;
     }
 
     public static void close() {
         try {
-            CONNECTION.close();
+            if (isConnected()) CONNECTION.close();
         } catch (SQLException ignored) {}
         CONNECTION = null;
     }
@@ -77,6 +87,32 @@ public class DiscordLinking {
 
     // Returns null if they can, returns reason why if not
     private static final Component SKILL_ISSUE = Component.literal("There is a configuration error with Discord linking, please contact the server owner.").withStyle(ChatFormatting.RED);
+
+    public static String generateCode(GameProfile profile) {
+        for (Map.Entry<String, Pair<Long, NameAndId>> code : new HashSet<>(LINK_CODES.entrySet())) {
+            if (!code.getValue().getSecond().id().equals(profile.id())) continue;
+
+            LINK_CODES.remove(code.getKey());
+            break;
+        }
+
+        // This is a little pedantic (I doubt many are going to RNG manipulate link codes), but just in case
+        String codeAsString;
+        do {
+            int linkCode;
+            try {
+                linkCode = SecureRandom.getInstanceStrong().nextInt(0, 1_000_000);
+            } catch (NoSuchAlgorithmException exception) {
+                linkCode = new Random().nextInt(0, 100_000_000);
+            }
+
+            codeAsString = String.format("%06d", linkCode);
+        } while (LINK_CODES.containsKey(codeAsString));
+
+        LINK_CODES.put(codeAsString, Pair.of(System.currentTimeMillis(), new NameAndId(profile)));
+        return codeAsString;
+    }
+
     public static @Nullable Component canPlayerJoin(MinecraftServer server, GameProfile profile) {
         if (!isWhitelistEnabled()) return null;
         if (server.getProfilePermissions(new NameAndId(profile)) >= 4) return null;
@@ -89,21 +125,7 @@ public class DiscordLinking {
         // handle linking
         String discordId = getDiscordFromMinecraft(profile.id());
         if (discordId == null) {
-            // This is a little pedantic (I doubt many are going to RNG manipulate link codes), but just in case
-            String codeAsString;
-            do {
-                int linkCode;
-                try {
-                    linkCode = SecureRandom.getInstanceStrong().nextInt(0, 1_000_000);
-                } catch (NoSuchAlgorithmException exception) {
-                    linkCode = new Random().nextInt(0, 100_000_000);
-                }
-
-                codeAsString = String.format("%06d", linkCode);
-            } while (LINK_CODES.containsKey(codeAsString));
-
-            LINK_CODES.put(codeAsString, Pair.of(System.currentTimeMillis(), new NameAndId(profile)));
-            return Component.literal(DissonanceConfig.LINK_MESSAGE_TEMPLATE.get().replace("%code%", codeAsString));
+            return Component.literal(DissonanceConfig.LINK_MESSAGE_TEMPLATE.get().replace("%code%", generateCode(profile)));
         }
 
         Guild guild = getGuild();
@@ -125,9 +147,11 @@ public class DiscordLinking {
         List<String> whitelistedRoles = DissonanceConfig.WHITELISTED_ROLES.get();
         if (whitelistedRoles.isEmpty()) {
             return null;
-        } else {
-            for (String id : whitelistedRoles) {
-                if (roleIds.contains(id)) return null;
+        }
+
+        for (String id : whitelistedRoles) {
+            if (roleIds.contains(id)) {
+                return null;
             }
         }
 
@@ -175,6 +199,26 @@ public class DiscordLinking {
     }
 
     public static @Nullable String getDiscordFromMinecraft(UUID id) {
-        return getString("SELECT discord_id FROM LINKS WHERE minecraft_id = ?", id.toString(), "discord_id");
+        return MC_TO_DISCORD_CACHE.computeIfAbsent(id, uuid -> getString("SELECT discord_id FROM LINKS WHERE minecraft_id = ?", uuid.toString(), "discord_id"));
+    }
+
+    public static Member getMemberFromMinecraft(UUID uuid) {
+        Guild guild = getGuild();
+        String discordId = getDiscordFromMinecraft(uuid);
+        if (discordId == null || guild == null) return null;
+        return guild.retrieveMemberById(discordId).complete();
+    }
+
+    @Override
+    public void onGuildMemberRemove(@NotNull GuildMemberRemoveEvent event) {
+        try {
+            removeLinkFromDiscord(event.getUser().getId());
+        } catch (SQLException e) {}
+    }
+
+    @Override
+    public void onGuildVoiceUpdate(@NotNull GuildVoiceUpdateEvent event) {
+        //if (event.getChannelLeft() != null)
+        //    DiscordProximity.onVCLeave(event);
     }
 }

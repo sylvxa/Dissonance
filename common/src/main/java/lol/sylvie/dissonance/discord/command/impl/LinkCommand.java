@@ -57,10 +57,10 @@ public class LinkCommand extends ListenerAdapter {
                 DiscordLinking.LINK_CODES.remove(code);
             } catch (SQLException e) {
                 Constants.LOG.error("Error while linking!", e);
-                event.reply("There was an error trying to link your account.").queue();
+                event.reply("There was an error trying to link your account.").setEphemeral(true).queue();
             }
         } else {
-            event.reply("Wrong code!").queue();
+            event.reply("Wrong code!").setEphemeral(true).queue();
         }
     }
 }

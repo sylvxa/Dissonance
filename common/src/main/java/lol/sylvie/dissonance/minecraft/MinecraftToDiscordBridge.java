@@ -4,6 +4,7 @@ import com.mojang.authlib.GameProfile;
 import lol.sylvie.dissonance.Constants;
 import lol.sylvie.dissonance.Dissonance;
 import lol.sylvie.dissonance.config.DissonanceConfig;
+import lol.sylvie.dissonance.discord.linking.DiscordLinking;
 import lol.sylvie.dissonance.util.TemplateUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.*;
@@ -46,12 +47,19 @@ public class MinecraftToDiscordBridge {
         return DissonanceConfig.USE_WEBHOOK_MESSAGES.get() && WEBHOOK != null;
     }
 
-    private static void logQueue(RestAction<?> action) {
+    private static void logQueue(RestAction<?> action, Runnable afterwards) {
         if (Dissonance.SHUTTING_DOWN) return;
         action.queue(
-                success -> {},
-                failure -> Constants.LOG.error("Couldn't send message!", failure)
+                success -> afterwards.run(),
+                failure -> {
+                    Constants.LOG.error("Couldn't send message!", failure);
+                    afterwards.run();
+                }
         );
+    }
+
+    private static void logQueue(RestAction<?> action) {
+        logQueue(action, () -> {});
     }
 
     public static String getAvatarUrl(GameProfile profile) {
@@ -132,8 +140,8 @@ public class MinecraftToDiscordBridge {
         return player != null ? TemplateUtil.replaceWithPlayer(template, player, placeholders) : TemplateUtil.replace(template, placeholders);
     }
 
-    public static void handleEvent(@Nullable Player player, DissonanceConfig.EventConfigValue eventValue, Map<String, String> placeholders, @Nullable Color colorOverride) {
-        if (!eventValue.enabled.get()) return;
+    public static void handleEvent(@Nullable Player player, DissonanceConfig.EventConfigValue eventValue, Map<String, String> placeholders, @Nullable Color colorOverride, Runnable afterwards) {
+        if (!ENABLED || !eventValue.enabled.get()) return;
         boolean usingEmbed = eventValue.useEmbed.get();
 
         String title = replaceIfPlayer(player, eventValue.titleTemplate.get(), placeholders);
@@ -175,8 +183,12 @@ public class MinecraftToDiscordBridge {
                 action = output.sendMessageEmbeds(embed);
             else action = output.sendMessage(content);
         }
-        logQueue(action);
 
+        logQueue(action, afterwards);
+    }
+
+    public static void handleEvent(@Nullable Player player, DissonanceConfig.EventConfigValue eventValue, Map<String, String> placeholders, @Nullable Color colorOverride) {
+        handleEvent(player, eventValue, placeholders, colorOverride, () -> {});
     }
 
     // Event hooks
@@ -187,6 +199,8 @@ public class MinecraftToDiscordBridge {
 
     public static void onPlayerLeave(Player player) {
         handleEvent(player, DissonanceConfig.EVENT_GAME_LEAVE, EMPTY, null);
+
+        DiscordLinking.MC_TO_DISCORD_CACHE.remove(player.getUUID());
     }
 
     public static void onAdvancementAwarded(ServerPlayer player, AdvancementHolder advancement, DisplayInfo displayInfo) {
@@ -213,14 +227,12 @@ public class MinecraftToDiscordBridge {
         handleEvent(null, DissonanceConfig.EVENT_SERVER_START, EMPTY, null);
     }
 
-    public static void onServerStopped() {
-        handleEvent(null, DissonanceConfig.EVENT_SERVER_STOP, EMPTY, null);
+    public static void onServerStopped(Runnable onShutDown) {
+        handleEvent(null, DissonanceConfig.EVENT_SERVER_STOP, EMPTY, null, onShutDown);
     }
 
     public static void onMiscMessage(Component message) {
         Map<String, String> placeholders = Map.of("%message%", message.getString());
         handleEvent(null, DissonanceConfig.EVENT_GAME_MISC_MESSAGE, placeholders, null);
     }
-
-
 }

@@ -2,7 +2,6 @@ package lol.sylvie.dissonance.discord;
 
 import lol.sylvie.dissonance.Constants;
 import lol.sylvie.dissonance.config.DissonanceConfig;
-import lol.sylvie.dissonance.discord.command.DiscordCommands;
 import lol.sylvie.dissonance.discord.command.impl.LinkCommand;
 import lol.sylvie.dissonance.discord.command.impl.UnlinkCommand;
 import lol.sylvie.dissonance.minecraft.MinecraftToDiscordBridge;
@@ -11,22 +10,16 @@ import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Webhook;
 import net.dv8tion.jda.api.entities.WebhookClient;
-import net.dv8tion.jda.api.entities.channel.Channel;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.exceptions.InvalidTokenException;
 import net.dv8tion.jda.api.requests.GatewayIntent;
-import net.dv8tion.jda.api.requests.RestAction;
-import net.dv8tion.jda.api.requests.restaction.WebhookAction;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
+import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import net.minecraft.server.MinecraftServer;
-import org.apache.commons.compress.archivers.sevenz.CLI;
 import org.jetbrains.annotations.Nullable;
 
-import java.net.URI;
 import java.util.EnumSet;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class DiscordClient {
     public static JDA CLIENT = null;
@@ -94,10 +87,11 @@ public class DiscordClient {
 
     public static @Nullable JDA createClientSafely(MinecraftServer server) {
         try {
-            CLIENT = JDABuilder.createLight(DissonanceConfig.DISCORD_TOKEN.get(), EnumSet.of(GatewayIntent.GUILD_MESSAGES, GatewayIntent.MESSAGE_CONTENT, GatewayIntent.GUILD_MEMBERS))
+            CLIENT = JDABuilder.createLight(DissonanceConfig.DISCORD_TOKEN.get(), EnumSet.of(GatewayIntent.GUILD_VOICE_STATES, GatewayIntent.GUILD_MESSAGES, GatewayIntent.MESSAGE_CONTENT, GatewayIntent.GUILD_MEMBERS))
                     .addEventListeners(new DiscordToMinecraftBridge(server))
                     .addEventListeners(new LinkCommand(), new UnlinkCommand())
                     .setMemberCachePolicy(MemberCachePolicy.ALL)
+                    .enableCache(CacheFlag.VOICE_STATE)
                     .build();
             CLIENT.awaitReady();
 

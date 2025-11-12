@@ -17,6 +17,11 @@ public class DissonanceConfig {
 
     public static final ModConfigSpec.ConfigValue<String> MINECRAFT_MESSAGE_TEMPLATE;
     public static final ModConfigSpec.ConfigValue<Boolean> USE_ROLE_COLORS;
+    public static final ModConfigSpec.ConfigValue<Boolean> ADD_USERNAME_HOVER_TO_NICKNAME;
+    public static final ModConfigSpec.ConfigValue<Boolean> LINK_TO_MESSAGE;
+    public static final ModConfigSpec.ConfigValue<Boolean> LINK_PARSING;
+    public static final ModConfigSpec.ConfigValue<Boolean> SHOW_ATTACHMENTS;
+    public static final ModConfigSpec.ConfigValue<String> LINK_COLOR;
 
     public static final ModConfigSpec.ConfigValue<Boolean> DISCORD_TO_MINECRAFT_ENABLED;
 
@@ -39,6 +44,13 @@ public class DissonanceConfig {
     public static final ModConfigSpec.ConfigValue<String> WHITELIST_MESSAGE;
     public static final ModConfigSpec.ConfigValue<List<String>> WHITELISTED_ROLES;
     public static final ModConfigSpec.ConfigValue<List<String>> BLACKLISTED_ROLES;
+
+    public static final ModConfigSpec.ConfigValue<Boolean> PROXIMITY_ENABLED;
+    public static final ModConfigSpec.ConfigValue<String> PROXIMITY_CATEGORY_ID;
+    public static final ModConfigSpec.ConfigValue<String> PROXIMITY_LOBBY_ID;
+    public static final ModConfigSpec.ConfigValue<Integer> PROXIMITY_RADIUS;
+    public static final ModConfigSpec.ConfigValue<Integer> PROXIMITY_GRACE_PERIOD;
+    public static final ModConfigSpec.ConfigValue<Integer> PROXIMITY_UPDATE_FREQUENCY;
 
     public static final ModConfigSpec.ConfigValue<Boolean> USE_WEBHOOK_FOR_EVENTS;
     public static final ModConfigSpec.ConfigValue<Boolean> NICKNAME_AUTHORS;
@@ -126,28 +138,55 @@ public class DissonanceConfig {
                 .comment("The guild ID of the server linking is enabled in")
                 .define("guild_id", "CHANGE_ME");
 
-        LINK_MESSAGE_TEMPLATE = builder
-                .comment("The message shown to players when they have to link their account.", "Placeholders: %code%")
-                .define("link_message", "§c§lThis server requires that you link with their Discord to join!\n\n§7Run the §i/link §r§command with the code §l%code%§r§7 to link your account.");
-
         builder.push("whitelist");
 
         WHITELIST_ENABLED = builder
                 .comment("If the Discord whitelist is enabled")
                 .define("enabled", false);
 
+        LINK_MESSAGE_TEMPLATE = builder
+                .comment("The message shown to players when they have to link their account.", "Placeholders: %code%")
+                .define("link_message", "§c§lThis server requires that you link with their Discord to join!\n\n§7Run the §i/link §r§7command with the code §l%code%§r§7 to link your account.");
 
         WHITELIST_MESSAGE = builder
-                .comment("The message shown to players if they are not allowed to join")
+                .comment("The message shown to players if they are linked but not allowed to join")
                 .define("kick_message", "§cYou are not allowed to join this server!");
 
         WHITELISTED_ROLES = builder
-                .comment("Discord role ids that are allowed to join the server", "Operators are exempt implicitly, and leaving this empty will mean anyone in the Discord may join.")
+                .comment("Discord role IDs that are allowed to join the server", "Operators are exempt implicitly, and leaving this empty will mean anyone in the Discord may join.")
                 .define("allowed_roles", new ArrayList<>());
 
         BLACKLISTED_ROLES = builder
-                .comment("Discord role ids that are NOT allowed to join the server", "Operators are exempt implicitly, but this takes priority over the above whitelist.")
+                .comment("Discord role IDs that are NOT allowed to join the server", "Operators are exempt implicitly, but this takes priority over the above whitelist.")
                 .define("disallowed_roles", new ArrayList<>());
+
+        builder.pop();
+
+        builder.push("proximity");
+
+        PROXIMITY_ENABLED = builder
+                .comment("If pseudo-proximity chat is enabled.")
+                .define("enabled", false);
+
+        PROXIMITY_CATEGORY_ID = builder
+                .comment("The ID of the category that proximity chat channels are created in", "Dissonance will wipe out any existing voice channels, so make sure to create a separate category!")
+                .define("category_id", "0");
+
+        PROXIMITY_LOBBY_ID = builder
+                .comment("The ID of the lobby that players will wait in if alone.", "It's highly recommended that you disable the \"Speak\" permission for this channel.")
+                .define("lobby_id", "0");
+
+        PROXIMITY_RADIUS = builder
+                .comment("How far proximity chat will extend in blocks.")
+                .define("range", 48);
+
+        PROXIMITY_GRACE_PERIOD = builder
+                .comment("How far a player can move out of range before being kicked from the proximity channel.")
+                .define("grace", 8);
+
+        PROXIMITY_UPDATE_FREQUENCY = builder
+                .comment("How often proximity chat will update.", "Value in ticks (checks every N ticks)")
+                .define("frequency", 20);
 
         builder.pop();
 
@@ -169,6 +208,35 @@ public class DissonanceConfig {
         USE_ROLE_COLORS = builder
                 .comment("If the top role color on Discord should be passed through to Minecraft")
                 .define("use_role_colors", true);
+
+        ADD_USERNAME_HOVER_TO_NICKNAME = builder
+                .comment("If the nickname field should have a hover text with the user's Discord username")
+                .define("nickname_username_hover", true);
+
+        LINK_TO_MESSAGE = builder
+                .comment("If the messages in Minecraft should link to their Discord equivalent")
+                .define("link_to_message", true);
+
+        LINK_PARSING = builder
+                .comment("If links should be parsed and made clickable")
+                .define("link_parsing", true);
+
+        SHOW_ATTACHMENTS = builder
+                .comment("If attachments should be appended to the end of messages")
+                .define("show_attachments", true);
+
+        LINK_COLOR = builder
+                .comment("The color of links in chat (in case blue isn't your style)")
+                .comment("Set this to \"role\" to have it mimic role colors.")
+                .define("link_color", "#5555FF", (value) -> {
+                    if (!(value instanceof String string)) return false;
+                    if (string.equalsIgnoreCase("role")) return true;
+                    try {
+                        Integer.decode(string);
+                        return true;
+                    } catch (NumberFormatException ignored) {}
+                    return false;
+                });
 
         builder.push("events");
 

@@ -1,5 +1,6 @@
 package lol.sylvie.dissonance.mixin;
 
+import lol.sylvie.dissonance.minecraft.MinecraftEvents;
 import lol.sylvie.dissonance.minecraft.MinecraftToDiscordBridge;
 import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.server.PlayerAdvancements;
@@ -22,7 +23,7 @@ public class PlayerAdvancementsMixin {
         // this is more code copying than i would have liked but lambda mixins just don't work for some reason
         advancement.value().display().ifPresent((display) -> {
             if (display.shouldAnnounceChat() && player.level().getGameRules().getBoolean(GameRules.RULE_ANNOUNCE_ADVANCEMENTS))
-                MinecraftToDiscordBridge.onAdvancementAwarded(player, advancement, display);
+                MinecraftEvents.onAdvancementAwarded(player, advancement, display);
         });
     }
 }

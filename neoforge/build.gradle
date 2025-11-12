@@ -31,6 +31,7 @@ neoForge {
         }
         server {
             server()
+            programArguments.addAll 'nogui'
         }
     }
     mods {

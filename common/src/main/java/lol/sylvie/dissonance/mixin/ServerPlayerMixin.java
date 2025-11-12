@@ -1,6 +1,7 @@
 package lol.sylvie.dissonance.mixin;
 
 import com.mojang.authlib.GameProfile;
+import lol.sylvie.dissonance.minecraft.MinecraftEvents;
 import lol.sylvie.dissonance.minecraft.MinecraftToDiscordBridge;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
@@ -20,6 +21,6 @@ public abstract class ServerPlayerMixin extends Player {
     @Inject(method = "die", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/damagesource/CombatTracker;getDeathMessage()Lnet/minecraft/network/chat/Component;", shift = At.Shift.AFTER))
     public void dissonance$onDeath(DamageSource cause, CallbackInfo ci) {
         if (!MinecraftToDiscordBridge.ENABLED) return;
-        MinecraftToDiscordBridge.onPlayerDeath(this, this.getCombatTracker().getDeathMessage());
+        MinecraftEvents.onPlayerDeath(this, this.getCombatTracker().getDeathMessage());
     }
 }

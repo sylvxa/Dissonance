@@ -10,17 +10,11 @@ import net.neoforged.neoforge.server.permission.nodes.PermissionNode;
 import java.util.HashMap;
 
 public class NeoForgePlatformHelper implements IPlatformHelper {
-    public static HashMap<String, PermissionNode<Boolean>> BOOLEAN_NODES = new HashMap<>();
     public static HashMap<String, PermissionNode<Integer>> INTEGER_NODES = new HashMap<>();
 
     @Override
     public String getPlatformName() {
         return "NeoForge";
-    }
-
-    @Override
-    public boolean hasPermission(ServerPlayer player, String node, boolean defaultValue) {
-        return PermissionAPI.getPermission(player, BOOLEAN_NODES.get(node));
     }
 
     @Override

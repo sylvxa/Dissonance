@@ -43,8 +43,8 @@ public class Dissonance {
 
         try {
             Class.forName("org.sqlite.JDBC");
-            DiscordLinking.init(server);
-            Constants.LOG.info("Connected to linking database!");
+            if (DiscordLinking.init(server))
+                Constants.LOG.info("Connected to linking database!");
         } catch (SQLException | ClassNotFoundException exception) {
             Constants.LOG.error("Couldn't load linking database!", exception);
         }
@@ -53,11 +53,19 @@ public class Dissonance {
         MinecraftToDiscordBridge.onServerStarted();
     }
 
-    public static void serverStopping() {
-        MinecraftToDiscordBridge.onServerStopped();
+    private static void stop() {
         DiscordLinking.close();
 
         SHUTTING_DOWN = true;
-        DiscordClient.CLIENT.shutdown();
+        DiscordClient.CLIENT.shutdownNow();
+    }
+
+    public static void serverStopping() {
+        if (MinecraftToDiscordBridge.ENABLED && DissonanceConfig.EVENT_SERVER_STOP.enabled.get()) {
+            MinecraftToDiscordBridge.onServerStopped(Dissonance::stop);
+        } else {
+            stop();
+        }
+
     }
 }

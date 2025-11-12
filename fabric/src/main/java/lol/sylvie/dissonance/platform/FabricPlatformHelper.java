@@ -13,11 +13,6 @@ public class FabricPlatformHelper implements IPlatformHelper {
     }
 
     @Override
-    public boolean hasPermission(ServerPlayer player, String node, boolean defaultValue) {
-        return Permissions.check(player, node, defaultValue);
-    }
-
-    @Override
     public boolean hasPermission(ServerPlayer player, String node, int defaultValue) {
         return Permissions.check(player, node, defaultValue);
     }
