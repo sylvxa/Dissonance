@@ -2,18 +2,15 @@ package lol.sylvie.dissonance.discord.command.impl;
 
 import com.mojang.datafixers.util.Pair;
 import lol.sylvie.dissonance.Constants;
-import lol.sylvie.dissonance.Dissonance;
 import lol.sylvie.dissonance.discord.linking.DiscordLinking;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.minecraft.ChatFormatting;
 import net.minecraft.server.players.NameAndId;
 import org.apache.commons.lang3.math.NumberUtils;
-import org.spongepowered.asm.mixin.injection.Constant;
 
 import java.sql.SQLException;
 

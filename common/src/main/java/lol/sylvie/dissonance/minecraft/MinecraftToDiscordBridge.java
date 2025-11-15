@@ -33,7 +33,7 @@ public class MinecraftToDiscordBridge {
     public static boolean ENABLED = true;
     public static IncomingWebhookClient WEBHOOK = null;
 
-    public static Pattern MENTION_PATTERN = Pattern.compile("@(?=.{2,32}$)(?!(?:everyone|here)$)\\.?[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.?");
+    public static final Pattern MENTION_PATTERN = Pattern.compile("@(?=.{2,32}$)(?!(?:everyone|here)$)\\.?[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.?");
 
     public static TextChannel getOutputChannel() {
         if (CLIENT == null) throw new IllegalStateException("Nothing Discord related should be called while JDA is uninitialized!");
@@ -179,6 +179,7 @@ public class MinecraftToDiscordBridge {
             else action = WEBHOOK.sendMessage(content);
         } else {
             TextChannel output = getOutputChannel();
+            assert output != null;
             if (usingEmbed)
                 action = output.sendMessageEmbeds(embed);
             else action = output.sendMessage(content);

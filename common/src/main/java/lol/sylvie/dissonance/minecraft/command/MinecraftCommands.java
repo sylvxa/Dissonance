@@ -1,6 +1,5 @@
 package lol.sylvie.dissonance.minecraft.command;
 
-import com.google.gson.FormattingStyle;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
@@ -17,7 +16,6 @@ import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.player.Player;
 
 import java.sql.SQLException;
 import java.util.UUID;
@@ -52,9 +50,7 @@ public class MinecraftCommands {
                     channel.getIterableHistory()
                             .takeAsync(IntegerArgumentType.getInteger(context, "amount"))
                             .thenAccept(channel::purgeMessages)
-                            .thenAccept((f) -> {
-                                context.getSource().sendSuccess(() -> Component.literal("Successfully purged messages!"), false);
-                            })
+                            .thenAccept((f) -> context.getSource().sendSuccess(() -> Component.literal("Successfully purged messages!"), false))
                             .exceptionally((error) -> {
                                 Constants.LOG.error("Couldn't purge messages.", error);
                                 context.getSource().sendFailure(Component.literal("There was an error while trying to purge messages."));

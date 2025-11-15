@@ -3,6 +3,23 @@ plugins {
     id 'net.neoforged.moddev'
 }
 
+dependencies {
+    implementation(libs.bundles.jda.requires)
+    jarJar(libs.bundles.jda.requires)
+
+    implementation(libs.jda) {
+        transitive = false
+        exclude group: 'org.slf4j', module: 'slf4j-api'
+        exclude group: 'com.fasterxml.jackson.core'
+        exclude module: 'opus-java'
+        exclude module: 'tink'
+    }
+    jarJar(libs.jda)
+
+    implementation libs.sqlitejdbc
+    jarJar(libs.sqlitejdbc)
+}
+
 neoForge {
     version = neoforge_version
     // Automatically enable neoforge AccessTransformers if the file exists

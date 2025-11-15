@@ -6,6 +6,7 @@ import lol.sylvie.dissonance.discord.DiscordClient;
 import lol.sylvie.dissonance.discord.linking.DiscordLinking;
 import lol.sylvie.dissonance.minecraft.MinecraftToDiscordBridge;
 import lol.sylvie.dissonance.platform.Services;
+import lol.sylvie.dissonance.util.ConsoleUtil;
 import net.minecraft.server.MinecraftServer;
 
 import java.sql.SQLException;
@@ -29,11 +30,12 @@ public class Dissonance {
         DiscordToMinecraftBridge.ENABLED = DissonanceConfig.DISCORD_TO_MINECRAFT_ENABLED.get();
 
         Constants.LOG.info("Logging into Discord...");
+        boolean whitelistEnabled = DiscordLinking.isWhitelistEnabled();
         if (DiscordClient.createClientSafely(server) == null) {
             MinecraftToDiscordBridge.ENABLED = false;
             DiscordToMinecraftBridge.ENABLED = false;
 
-            if (DiscordLinking.isWhitelistEnabled()) {
+            if (whitelistEnabled) {
                 Constants.LOG.error("You have the Discord linking whitelist enabled! These errors *must* be resolved before players can properly join the server!");
             }
 
@@ -42,10 +44,10 @@ public class Dissonance {
         }
 
         try {
-            Class.forName("org.sqlite.JDBC");
             if (DiscordLinking.init(server))
                 Constants.LOG.info("Connected to linking database!");
-        } catch (SQLException | ClassNotFoundException exception) {
+            else if (whitelistEnabled) ConsoleUtil.friendlyMessageBox("HEY! The linking guild was unable to be fetched. (is your guild ID set correctly?)", "In order to keep un-whitelisted players out, non-operators will be able to join until this is fixed.");
+        } catch (SQLException exception) {
             Constants.LOG.error("Couldn't load linking database!", exception);
         }
 

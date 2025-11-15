@@ -11,8 +11,6 @@ import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.concrete.Category;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
-import net.dv8tion.jda.api.events.guild.voice.GuildVoiceUpdateEvent;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -35,7 +33,7 @@ public class DiscordProximity {
     }
 
     public static boolean isInProximityCategory(VoiceChannel channel) {
-        return DissonanceConfig.PROXIMITY_CATEGORY_ID.get().equals(channel.getParentCategoryId());
+        return DissonanceConfig.PROXIMITY_CATEGORY_ID.get().equals(channel.getParentCategoryIdLong());
     }
 
     public static @Nullable VoiceChannel getVoiceChannel(Member member) {
@@ -65,10 +63,6 @@ public class DiscordProximity {
         return guild.getVoiceChannelById(DissonanceConfig.PROXIMITY_LOBBY_ID.get());
     }
 
-    public static VoiceChannel getLobbyChannel() {
-        return getLobbyChannel(DiscordLinking.getGuild());
-    }
-
     public static void init() {
         Guild guild = DiscordLinking.getGuild();
         if (guild == null || getLobbyChannel(guild) == null) {
@@ -80,20 +74,23 @@ public class DiscordProximity {
         Category category = getCategory(guild);
         if (category == null || !guild.getSelfMember().hasPermission(category, Set.of(Permission.MANAGE_CHANNEL, Permission.VOICE_MOVE_OTHERS))) {
             ENABLED = false;
-            Constants.LOG.error("Cannot move members in proximity category!");
+            Constants.LOG.error("Cannot move members or delete channels in proximity category!");
             return;
         }
 
         for (GuildChannel channel : category.getChannels()) {
-            if (channel.getType() != ChannelType.VOICE || channel.getId().equals(DissonanceConfig.PROXIMITY_LOBBY_ID.get())) continue;
+            if (channel.getType() != ChannelType.VOICE || DissonanceConfig.PROXIMITY_LOBBY_ID.get().equals(channel.getIdLong())) continue;
 
             channel.delete().queue();
         }
 
         ENABLED = DissonanceConfig.LINKING_ENABLED.get() && DissonanceConfig.PROXIMITY_ENABLED.get();
+        if (ENABLED) {
+            Constants.LOG.warn("Proximity chat is experimental. Use with caution!");
+        }
     }
 
-    public static HashMap<UUID, ProximityGroup> playerToGroup = new HashMap<>();
+    public static final HashMap<UUID, ProximityGroup> playerToGroup = new HashMap<>();
     public static void update(MinecraftServer server) {
         if (!ENABLED) return;
 

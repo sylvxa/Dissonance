@@ -16,7 +16,7 @@ import java.util.*;
 public class ProximityGroup {
     private final UUID groupId;
     public final HashSet<UUID> players;
-    private Guild guild;
+    private final Guild guild;
     private VoiceChannel channel;
 
     private boolean markedForRemoval = false;
@@ -61,9 +61,7 @@ public class ProximityGroup {
     }
 
     private void movePlayerHere(UUID player) {
-        movePlayer(player, this.channel, () -> {
-            System.out.println("MOVE");
-        });
+        movePlayer(player, this.channel, () -> {});
     }
 
     public void onChannelCreate(VoiceChannel channel) {
@@ -74,7 +72,7 @@ public class ProximityGroup {
         }
     }
 
-    public boolean implode(@Nullable VoiceChannel destination) {
+    public void implode(@Nullable VoiceChannel destination) {
         for (UUID stillHere : new HashSet<>(players)) {
             remove(stillHere, destination == null, false);
             if (destination != null) {
@@ -82,7 +80,6 @@ public class ProximityGroup {
             }
         }
 
-        return true;
     }
 
     public HashSet<UUID> recursiveNetworkSplit(MinecraftServer server, ServerPlayer current, HashSet<UUID> found, int distanceSquared) {
@@ -97,11 +94,10 @@ public class ProximityGroup {
         return found;
     }
 
-    public boolean implodeIfNeeded() {
-        if (!markedForRemoval) return false;
+    public void implodeIfNeeded() {
+        if (!markedForRemoval) return;
 
         implode(null);
-        return true;
     }
 
     public List<UUID> collectDisconnectedMembers() {
@@ -144,10 +140,6 @@ public class ProximityGroup {
             if (participant != null && participant.isAlive() && participant.distanceToSqr(player) < distanceSquared) return true;
         }
         return false;
-    }
-
-    public int size() {
-        return this.players.size();
     }
 
     public void merge(ProximityGroup group) {

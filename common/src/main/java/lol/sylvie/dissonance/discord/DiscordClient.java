@@ -21,16 +21,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.EnumSet;
 
+import static lol.sylvie.dissonance.util.ConsoleUtil.friendlyMessageBox;
+
 public class DiscordClient {
     public static JDA CLIENT = null;
-
-    private static void friendlyMessageBox(String... lines) {
-        Constants.LOG.error("----------- Dissonance -----------");
-        for (String line : lines) {
-            Constants.LOG.error(line);
-        }
-        Constants.LOG.error("----------------------------------");
-    }
 
     private static void ensureOutputs() {
         if (!MinecraftToDiscordBridge.ENABLED) return;
@@ -67,7 +61,7 @@ public class DiscordClient {
     }
 
     private static void ensureInputs() {
-        for (String id : DissonanceConfig.INPUT_CHANNELS.get()) {
+        for (Long id : DissonanceConfig.INPUT_CHANNELS.get()) {
             TextChannel channel;
             try {
                 channel = CLIENT.getTextChannelById(id);
@@ -81,7 +75,7 @@ public class DiscordClient {
                 continue;
             } else if (!channel.getGuild().getSelfMember().hasPermission(channel, Permission.VIEW_CHANNEL)) {
                 Constants.LOG.error("The bot can't read #{}, make sure that the bot has permission to view it.", channel.getName());
-            };
+            }
         }
     }
 

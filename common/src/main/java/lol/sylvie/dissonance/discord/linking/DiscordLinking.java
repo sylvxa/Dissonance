@@ -7,21 +7,19 @@ import lol.sylvie.dissonance.config.DissonanceConfig;
 import lol.sylvie.dissonance.discord.DiscordClient;
 import lol.sylvie.dissonance.discord.command.DiscordCommands;
 import lol.sylvie.dissonance.discord.proximity.DiscordProximity;
+import lol.sylvie.dissonance.minecraft.MinecraftToDiscordBridge;
 import lol.sylvie.dissonance.platform.Services;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.ISnowflake;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.guild.GuildLeaveEvent;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
-import net.dv8tion.jda.api.events.guild.voice.GuildVoiceUpdateEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.NameAndId;
-import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -36,12 +34,17 @@ import java.util.stream.Collectors;
 // I suck at SQL
 public class DiscordLinking extends ListenerAdapter {
     public static Connection CONNECTION;
-    public static HashMap<String, Pair<Long, NameAndId>> LINK_CODES = new HashMap<>();
-    public static int LINK_CODE_LIFESPAN = 5 * 60 * 1000;
+    public static final HashMap<String, Pair<Long, NameAndId>> LINK_CODES = new HashMap<>();
+    public static final int LINK_CODE_LIFESPAN = 5 * 60 * 1000;
 
-    public static HashMap<UUID, String> MC_TO_DISCORD_CACHE = new HashMap<>();
+    public static final HashMap<UUID, String> MC_TO_DISCORD_CACHE = new HashMap<>();
 
     public static boolean init(MinecraftServer server) throws SQLException {
+        if (DissonanceConfig.GUILD_ID.get() == 0 && MinecraftToDiscordBridge.ENABLED) {
+            TextChannel channel = MinecraftToDiscordBridge.getOutputChannel();
+            if (channel != null) DissonanceConfig.GUILD_ID.set(channel.getGuild().getIdLong());
+        }
+
         Guild guild = getGuild();
         if (guild == null) return false;
         Path path = server.getServerDirectory().resolve("config");
@@ -139,17 +142,17 @@ public class DiscordLinking extends ListenerAdapter {
         if (member == null)
             return notAllowed;
 
-        Set<String> roleIds = member.getUnsortedRoles().stream().map(ISnowflake::getId).collect(Collectors.toSet());
-        for (String id : DissonanceConfig.BLACKLISTED_ROLES.get()) {
+        Set<Long> roleIds = member.getUnsortedRoles().stream().map(ISnowflake::getIdLong).collect(Collectors.toSet());
+        for (Long id : DissonanceConfig.BLACKLISTED_ROLES.get()) {
             if (roleIds.contains(id)) return notAllowed;
         }
 
-        List<String> whitelistedRoles = DissonanceConfig.WHITELISTED_ROLES.get();
+        List<Long> whitelistedRoles = DissonanceConfig.WHITELISTED_ROLES.get();
         if (whitelistedRoles.isEmpty()) {
             return null;
         }
 
-        for (String id : whitelistedRoles) {
+        for (Long id : whitelistedRoles) {
             if (roleIds.contains(id)) {
                 return null;
             }
@@ -213,12 +216,6 @@ public class DiscordLinking extends ListenerAdapter {
     public void onGuildMemberRemove(@NotNull GuildMemberRemoveEvent event) {
         try {
             removeLinkFromDiscord(event.getUser().getId());
-        } catch (SQLException e) {}
-    }
-
-    @Override
-    public void onGuildVoiceUpdate(@NotNull GuildVoiceUpdateEvent event) {
-        //if (event.getChannelLeft() != null)
-        //    DiscordProximity.onVCLeave(event);
+        } catch (SQLException ignored) {}
     }
 }

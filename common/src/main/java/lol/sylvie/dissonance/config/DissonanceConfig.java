@@ -6,9 +6,20 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 
 public class DissonanceConfig {
     public static final ModConfigSpec SPEC;
+
+    private static final Predicate<Object> LONG_LIST_VALIDATOR = o -> o instanceof List<?> list && list.stream().allMatch(n -> n instanceof Long);
+    private static final Predicate<Object> COLOR_VALIDATOR = (value) -> {
+        if (!(value instanceof String string)) return false;
+        try {
+            Color.decode(string);
+            return true;
+        } catch (NumberFormatException ignored) {}
+        return false;
+    };
 
     public static final ModConfigSpec.ConfigValue<String> DISCORD_TOKEN;
     public static final ModConfigSpec.ConfigValue<String> DISCORD_WEBHOOK;
@@ -25,7 +36,7 @@ public class DissonanceConfig {
 
     public static final ModConfigSpec.ConfigValue<Boolean> DISCORD_TO_MINECRAFT_ENABLED;
 
-    public static final ModConfigSpec.ConfigValue<List<String>> INPUT_CHANNELS;
+    public static final ModConfigSpec.ConfigValue<List<Long>> INPUT_CHANNELS;
     public static final ModConfigSpec.ConfigValue<Long> OUTPUT_CHANNEL;
     public static final ModConfigSpec.ConfigValue<Boolean> USE_WEBHOOK_MESSAGES;
     public static final ModConfigSpec.ConfigValue<String> AVATAR_API;
@@ -37,17 +48,17 @@ public class DissonanceConfig {
     public static final ModConfigSpec.ConfigValue<Boolean> ALLOW_MASS_PINGS;
 
     public static final ModConfigSpec.ConfigValue<Boolean> LINKING_ENABLED;
-    public static final ModConfigSpec.ConfigValue<String> GUILD_ID;
+    public static final ModConfigSpec.ConfigValue<Long> GUILD_ID;
     public static final ModConfigSpec.ConfigValue<String> LINK_MESSAGE_TEMPLATE;
 
     public static final ModConfigSpec.ConfigValue<Boolean> WHITELIST_ENABLED;
     public static final ModConfigSpec.ConfigValue<String> WHITELIST_MESSAGE;
-    public static final ModConfigSpec.ConfigValue<List<String>> WHITELISTED_ROLES;
-    public static final ModConfigSpec.ConfigValue<List<String>> BLACKLISTED_ROLES;
+    public static final ModConfigSpec.ConfigValue<List<Long>> WHITELISTED_ROLES;
+    public static final ModConfigSpec.ConfigValue<List<Long>> BLACKLISTED_ROLES;
 
     public static final ModConfigSpec.ConfigValue<Boolean> PROXIMITY_ENABLED;
-    public static final ModConfigSpec.ConfigValue<String> PROXIMITY_CATEGORY_ID;
-    public static final ModConfigSpec.ConfigValue<String> PROXIMITY_LOBBY_ID;
+    public static final ModConfigSpec.ConfigValue<Long> PROXIMITY_CATEGORY_ID;
+    public static final ModConfigSpec.ConfigValue<Long> PROXIMITY_LOBBY_ID;
     public static final ModConfigSpec.ConfigValue<Integer> PROXIMITY_RADIUS;
     public static final ModConfigSpec.ConfigValue<Integer> PROXIMITY_GRACE_PERIOD;
     public static final ModConfigSpec.ConfigValue<Integer> PROXIMITY_UPDATE_FREQUENCY;
@@ -88,12 +99,12 @@ public class DissonanceConfig {
                 .define("discord_to_mc", true);
 
         INPUT_CHANNELS = builder
-                .comment("Where messages from Discord are sent to Minecraft (channel ids)", "You normally don't need more than one here.")
-                .define("input_channels", new ArrayList<>(List.of("0")));
+                .comment("Where messages from Discord are sent to Minecraft (channel IDs)", "You normally don't need more than one here.")
+                .define("input_channels", new ArrayList<>(List.of(0L)), LONG_LIST_VALIDATOR);
 
         // TODO: it would require a refactor but we could have multiple here? je ne sais pas
         OUTPUT_CHANNEL = builder
-                .comment("Where messages from Minecraft are sent in Discord (channel id)")
+                .comment("Where messages from Minecraft are sent in Discord (channel ID)")
                 .define("output_channel", 0L);
 
         USE_WEBHOOK_MESSAGES = builder
@@ -136,7 +147,7 @@ public class DissonanceConfig {
 
         GUILD_ID = builder
                 .comment("The guild ID of the server linking is enabled in")
-                .define("guild_id", "CHANGE_ME");
+                .define("guild_id", 0L);
 
         builder.push("whitelist");
 
@@ -154,11 +165,11 @@ public class DissonanceConfig {
 
         WHITELISTED_ROLES = builder
                 .comment("Discord role IDs that are allowed to join the server", "Operators are exempt implicitly, and leaving this empty will mean anyone in the Discord may join.")
-                .define("allowed_roles", new ArrayList<>());
+                .define("allowed_roles", new ArrayList<>(), LONG_LIST_VALIDATOR);
 
         BLACKLISTED_ROLES = builder
                 .comment("Discord role IDs that are NOT allowed to join the server", "Operators are exempt implicitly, but this takes priority over the above whitelist.")
-                .define("disallowed_roles", new ArrayList<>());
+                .define("disallowed_roles", new ArrayList<>(), LONG_LIST_VALIDATOR);
 
         builder.pop();
 
@@ -170,11 +181,11 @@ public class DissonanceConfig {
 
         PROXIMITY_CATEGORY_ID = builder
                 .comment("The ID of the category that proximity chat channels are created in", "Dissonance will wipe out any existing voice channels, so make sure to create a separate category!")
-                .define("category_id", "0");
+                .define("category_id", 0L);
 
         PROXIMITY_LOBBY_ID = builder
                 .comment("The ID of the lobby that players will wait in if alone.", "It's highly recommended that you disable the \"Speak\" permission for this channel.")
-                .define("lobby_id", "0");
+                .define("lobby_id", 0L);
 
         PROXIMITY_RADIUS = builder
                 .comment("How far proximity chat will extend in blocks.")
@@ -228,15 +239,7 @@ public class DissonanceConfig {
         LINK_COLOR = builder
                 .comment("The color of links in chat (in case blue isn't your style)")
                 .comment("Set this to \"role\" to have it mimic role colors.")
-                .define("link_color", "#5555FF", (value) -> {
-                    if (!(value instanceof String string)) return false;
-                    if (string.equalsIgnoreCase("role")) return true;
-                    try {
-                        Integer.decode(string);
-                        return true;
-                    } catch (NumberFormatException ignored) {}
-                    return false;
-                });
+                .define("link_color", "#5555FF", (o) -> COLOR_VALIDATOR.test(o) || (o instanceof String s && s.equalsIgnoreCase("role")));
 
         builder.push("events");
 
@@ -365,14 +368,7 @@ public class DissonanceConfig {
                     .comment("The color of this event's embed");
             if (colorComment != null) colorBuilder.comment(colorComment);
 
-            color = colorBuilder.define("color", defaultColor, (value) -> {
-                if (!(value instanceof String)) return false;
-                try {
-                    Color.decode((String) value);
-                    return true;
-                } catch (NumberFormatException ignored) {}
-                return false;
-            });
+            color = colorBuilder.define("color", defaultColor, COLOR_VALIDATOR);
 
             builder.pop();
         }

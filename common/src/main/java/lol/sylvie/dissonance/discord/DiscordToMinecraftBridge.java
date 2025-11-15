@@ -5,7 +5,6 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.Channel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.*;
 import net.minecraft.server.MinecraftServer;
 import org.jetbrains.annotations.NotNull;
@@ -16,7 +15,7 @@ import java.util.regex.Pattern;
 
 public class DiscordToMinecraftBridge extends MinecraftOwnedListener {
     public static boolean ENABLED = true;
-    public static Pattern URL_PATTERN = Pattern.compile("https?://(?:www\\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b[-a-zA-Z0-9()@:%_+.~#?&/=]*");
+    public static final Pattern URL_PATTERN = Pattern.compile("https?://(?:www\\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b[-a-zA-Z0-9()@:%_+.~#?&/=]*");
 
     public DiscordToMinecraftBridge(MinecraftServer server) {
         super(server);
@@ -128,7 +127,7 @@ public class DiscordToMinecraftBridge extends MinecraftOwnedListener {
 
     @Override
     public void onMessageReceived(@NotNull MessageReceivedEvent event) {
-        if (!DiscordToMinecraftBridge.ENABLED || event.getMember() == null || event.getAuthor().isBot() || !DissonanceConfig.INPUT_CHANNELS.get().contains(event.getChannel().getId())) return;
+        if (!DiscordToMinecraftBridge.ENABLED || event.getMember() == null || event.getAuthor().isBot() || !DissonanceConfig.INPUT_CHANNELS.get().contains(event.getChannel().getIdLong())) return;
         Component formatted = formatDiscordMessage(event.getMember(), event.getChannel(), event.getMessage());
         this.minecraft.execute(() -> this.minecraft.getPlayerList().broadcastSystemMessage(formatted, false));
     }

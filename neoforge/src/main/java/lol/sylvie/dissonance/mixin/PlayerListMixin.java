@@ -15,7 +15,7 @@ import java.util.function.Function;
 @Mixin(PlayerList.class)
 public class PlayerListMixin {
     // NeoForge doesn't have this equivalent event while Fabric does.
-    @Inject(method = "broadcastSystemMessage(Lnet/minecraft/network/chat/Component;Ljava/util/function/Function;Z)V", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "broadcastSystemMessage(Lnet/minecraft/network/chat/Component;Ljava/util/function/Function;Z)V", at = @At("HEAD"))
     private void dissonance$onSendGameMessage(Component message, Function<ServerPlayer, Component> playerMessageFactory, boolean overlay, CallbackInfo ci) {
         if (!NeoForgeDissonance.ENABLE_MIXINS || !MinecraftToDiscordBridge.ENABLED) return;
         MinecraftToDiscordBridge.onMiscMessage(message);

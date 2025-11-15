@@ -14,7 +14,6 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.message.v1.ServerMessageEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerLoginConnectionEvents;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.MinecraftServer;
 import net.neoforged.fml.config.ModConfig;
 
 public class FabricDissonance implements ModInitializer {
@@ -24,9 +23,7 @@ public class FabricDissonance implements ModInitializer {
 
         Dissonance.modInit();
 
-        CommandRegistrationCallback.EVENT.register((dispatcher, context, environment) -> {
-            MinecraftCommands.register(dispatcher);
-        });
+        CommandRegistrationCallback.EVENT.register((dispatcher, context, environment) -> MinecraftCommands.register(dispatcher));
 
         ServerLoginConnectionEvents.QUERY_START.register((handler, server, sender, synchronizer) -> {
             Component failureReason = DiscordLinking.canPlayerJoin(server, handler.authenticatedProfile);
@@ -44,9 +41,7 @@ public class FabricDissonance implements ModInitializer {
         ServerTickEvents.END_SERVER_TICK.register(MinecraftEvents::tick);
 
         if (!MinecraftToDiscordBridge.ENABLED) return;
-        ServerMessageEvents.CHAT_MESSAGE.register((message, player, bound) -> {
-            MinecraftToDiscordBridge.onPlayerChatMessage(player, message.signedContent());
-        });
+        ServerMessageEvents.CHAT_MESSAGE.register((message, player, bound) -> MinecraftToDiscordBridge.onPlayerChatMessage(player, message.signedContent()));
 
         ServerPlayerEvents.JOIN.register(MinecraftEvents::onPlayerJoin);
         ServerPlayerEvents.LEAVE.register(MinecraftEvents::onPlayerLeave);
