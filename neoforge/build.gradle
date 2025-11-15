@@ -4,9 +4,6 @@ plugins {
 }
 
 dependencies {
-    implementation(libs.bundles.jda.requires)
-    jarJar(libs.bundles.jda.requires)
-
     implementation(libs.jda) {
         transitive = false
         exclude group: 'org.slf4j', module: 'slf4j-api'
@@ -15,6 +12,9 @@ dependencies {
         exclude module: 'tink'
     }
     jarJar(libs.jda)
+
+    implementation(libs.bundles.jda.requires)
+    jarJar(libs.bundles.jda.requires)
 
     implementation libs.sqlitejdbc
     jarJar(libs.sqlitejdbc)
