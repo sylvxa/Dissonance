@@ -1,0 +1,126 @@
+/* http://scootergraphics.com/virtue/index.html */
+@font-face {
+    font-family: 'Virtue';
+    src: url('/fonts/virtue.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+/* https://fontstruct.com/fontstructions/show/1744455/geneva-9-2 */
+/* just to be safe, here's all the license stuff */
+/* readme.txt 
+The font file in this archive was created using Fontstruct the free, online
+font-building tool.
+This font was created by “Techstar01”*.
+This font has a homepage where this archive and other versions may be found:
+https://fontstruct.com/fontstructions/show/1744455
+
+*NOTE: “Geneva 9.2” was originally cloned (copied) from the FontStruction
+“Geneva 9.1” (https://fontstruct.com/fontstructions/show/1304775) by
+“Kelsey Higham”, which is licensed under a Open Font License license
+(https://fontstruct.com/fontstructions/license/1304775).
+“Geneva 9.1” was in turn cloned (copied) from the FontStruction “Geneva
+9” (https://fontstruct.com/fontstructions/show/349277) by “Kelsey Higham”,
+which is licensed under a Creative Commons Attribution license
+(http://creativecommons.org/licenses/by/3.0/).
+
+Try Fontstruct at https://fontstruct.com
+It’s easy and it’s fun.
+
+Fontstruct is copyright ©2020-2025 Rob Meek
+
+LEGAL NOTICE:
+In using this font you must comply with the licensing terms described in the
+file “license.txt” included with this archive.
+If you redistribute the font file in this archive, it must be accompanied by all
+the other files from this archive, including this one.
+*/
+
+/* license.txt
+The FontStruction “Geneva 9.2”
+(https://fontstruct.com/fontstructions/show/1744455) by “Techstar01” is
+licensed under a Creative Commons Attribution Share Alike license
+(http://creativecommons.org/licenses/by-sa/3.0/).
+“Geneva 9.2” was originally cloned (copied) from the FontStruction “Geneva
+9.1” (https://fontstruct.com/fontstructions/show/1304775) by “Kelsey
+Higham”, which is licensed under a Open Font License license
+(https://fontstruct.com/fontstructions/license/1304775).
+“Geneva 9.1” was in turn cloned (copied) from the FontStruction “Geneva
+9” (https://fontstruct.com/fontstructions/show/349277) by “Kelsey Higham”,
+which is licensed under a Creative Commons Attribution license
+(http://creativecommons.org/licenses/by/3.0/).
+*/
+
+@font-face {
+    font-family: 'Geneva';
+    src: url('/fonts/geneva.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+
+:root {
+    --font-family: Virtue, Lucida Grande, Lucida Sans Unicode, Lucida Sans, Geneva, Verdana, sans-serif;
+    --mono-font: Geneva, 'Courier New', Courier, monospace;
+}
+
+html, button, input {
+    font-family: var(--font-family);
+}
+
+
+html.mocha, html.macchiato, html.frappe {
+    -webkit-font-smoothing: antialiased;
+}
+
+code, code.hljs {
+    padding: 2px 4px;
+    font-size: 27px;
+    -webkit-font-smoothing: antialiased;
+    filter: contrast(100.00001%);
+    letter-spacing: 2px;
+}
+
+
+pre code.hljs {
+    padding: 16px;
+}
+
+
+.header, .searchresults-header {
+    font-weight: normal;
+}
+
+.part-title {
+    font-size: 2.5rem;
+    font-weight: normal !important;
+}
+
+.part-title:after {
+  border-bottom: 2px dashed var(--bg);
+  content: '';
+  flex: 1;
+  padding: 4px 8px;
+  margin-left: 8px;
+  align-self: center;
+}
+
+.chapter-item a::before {
+    content: '> ';
+}
+
+.chapter-item a:not(.active) {
+    color: var(--icons-hover);
+}
+
+.chapter-item a:not(.active):hover {
+    color: var(--fg);
+}
+
+.chapter-item {
+    font-size: 1.5rem;
+}
+
+.searchresults-header {
+    font-style: italic;
+}

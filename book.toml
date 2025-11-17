@@ -1,0 +1,15 @@
+[book]
+authors = ["sylvie <3"]
+language = "en"
+src = "src"
+title = "Dissonance"
+
+[output.html]
+additional-css = ["./theme/catppuccin.css", "./theme/css/fonts.css", "./theme/css/extra.css"]
+default-theme = "latte"
+preferred-dark-theme = "mocha"
+git-repository-url = "https://github.com/sylvxa/Dissonance"
+no-section-label = true
+
+[output.html.print]
+enable = false

@@ -1,0 +1,38 @@
+
+input {
+  outline: none;
+}
+
+input[type="search"]::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  -webkit-mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23777'><path d='M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z'/></svg>");
+  height: 16px;
+  width: 16px;
+  background: var(--search-mark-bg);
+}
+
+.menu-title {
+  display: flex;
+  justify-content: center;
+  margin: 0 auto;
+  align-items: center;
+  font-style: italic;
+  image-rendering: pixelated;
+}
+
+.menu-title img {
+  margin-right: 8px;
+}
+
+h2 {
+  margin-top: 20px;
+}
+
+#content main ol li {
+  margin: 8px 0px;
+  line-height: 1.75em;
+}
+
+.sidebar mdbook-sidebar-scrollbox.sidebar-scrollbox {
+    padding-left: 20px;
+}
