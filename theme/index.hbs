@@ -17,7 +17,7 @@
 
         <meta name="description" content="{{ description }}">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="theme-color" content="#ffffff">
+        <meta name="theme-color" content="#fab387">
 
         {{#if favicon_svg}}
         <link rel="icon" href="{{ resource "favicon.svg" }}">
@@ -32,8 +32,6 @@
         <link rel="stylesheet" href="{{ resource "css/print.css" }}" media="print">
         {{/if}}
 
-        <!-- Fonts -->
-        <link rel="stylesheet" href="{{ resource "fonts/fonts.css" }}">
 
         <!-- Highlight.js Stylesheets -->
         <link rel="stylesheet" id="mdbook-highlight-css" href="{{ resource "highlight.css" }}">
@@ -165,7 +163,8 @@
                         {{/if}}
                     </div>
 
-                    <h1 class="menu-title">{{ book_title }}</h1>
+
+                    <h1 class="menu-title"><img src="{{ resource "/img/icon.png" }}" alt="Dissonance grayscale logo" width="32" height="32"> {{ book_title }}</h1>
 
                     <div class="right-buttons">
                         <a id="toggle-font-button" title="Toggle readable font" aria-label="Toggle font">
