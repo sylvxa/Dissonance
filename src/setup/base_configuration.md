@@ -4,7 +4,7 @@ This section will cover how to get Dissonance running in it's default configurat
 
 ## What you need
 
-- [ ] Administrator access to the Minecraft and Discord servers you are connecting
+- [x] Administrator access to the Minecraft and Discord servers you are connecting
 - - On Minecraft, you need editing access to the `config/dissonance-server.toml` file (and access to the console, preferably)
 - - On Discord, you need permissions to invite the bot and give it several permissions (send messages, manage webhooks, etc.)
 

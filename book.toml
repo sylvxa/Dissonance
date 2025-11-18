@@ -6,6 +6,7 @@ title = "Dissonance"
 
 [output.html]
 additional-css = ["./theme/catppuccin.css", "./theme/css/fonts.css", "./theme/css/extra.css"]
+additional-js = ["./theme/js/font-switch.js"]
 default-theme = "latte"
 preferred-dark-theme = "mocha"
 git-repository-url = "https://github.com/sylvxa/Dissonance"
