@@ -118,7 +118,8 @@ public class DiscordLinking extends ListenerAdapter {
 
     public static @Nullable Component canPlayerJoin(MinecraftServer server, GameProfile profile) {
         if (!isWhitelistEnabled()) return null;
-        if (server.getProfilePermissions(new NameAndId(profile)) >= 4) return null;
+        NameAndId nameAndId = new NameAndId(profile);
+        if (server.getPlayerList().isWhiteListed(nameAndId)) return null; // this includes operators too!
         if (DiscordClient.CLIENT == null || !isConnected()) return Component.literal("The server is still starting, please wait a moment and try again.").withStyle(ChatFormatting.RED);
 
         for (Map.Entry<String, Pair<Long, NameAndId>> codes : LINK_CODES.entrySet().stream().toList()) {
