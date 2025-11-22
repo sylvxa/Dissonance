@@ -1,5 +1,6 @@
 package lol.sylvie.dissonance.discord.command.impl;
 
+import com.mojang.authlib.GameProfile;
 import com.mojang.datafixers.util.Pair;
 import lol.sylvie.dissonance.Constants;
 import lol.sylvie.dissonance.discord.linking.DiscordLinking;
@@ -9,7 +10,6 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.minecraft.ChatFormatting;
-import net.minecraft.server.players.NameAndId;
 import org.apache.commons.lang3.math.NumberUtils;
 
 import java.sql.SQLException;
@@ -38,17 +38,17 @@ public class LinkCommand extends ListenerAdapter {
             return;
         }
 
-        Pair<Long, NameAndId> result = DiscordLinking.LINK_CODES.get(code);
+        Pair<Long, GameProfile> result = DiscordLinking.LINK_CODES.get(code);
         if (result != null && !DiscordLinking.hasCodeExpired(result)) {
             try {
-                NameAndId profile = result.getSecond();
-                DiscordLinking.addLink(user, profile.id());
+                GameProfile profile = result.getSecond();
+                DiscordLinking.addLink(user, profile.getId());
 
                 EmbedBuilder builder = new EmbedBuilder();
                 builder.setColor(ChatFormatting.GREEN.getColor());
-                builder.setImage("https://mc-heads.net/head/" + profile.id());
+                builder.setImage("https://mc-heads.net/head/" + profile.getId());
                 builder.setTitle("Your account is linked!");
-                builder.setDescription(String.format("%s <-> %s", event.getUser().getAsMention(), profile.name()));
+                builder.setDescription(String.format("%s <-> %s", event.getUser().getAsMention(), profile.getName()));
                 event.replyEmbeds(builder.build()).queue();
 
                 DiscordLinking.LINK_CODES.remove(code);

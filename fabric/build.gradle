@@ -22,7 +22,6 @@ dependencies {
     implementation(libs.jda) {
         transitive = false
         exclude group: 'org.slf4j', module: 'slf4j-api'
-        exclude group: 'com.fasterxml.jackson.core'
         exclude module: 'opus-java'
         exclude module: 'tink'
     }

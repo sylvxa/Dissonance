@@ -65,7 +65,7 @@ public class DiscordToMinecraftBridge extends MinecraftOwnedListener {
                         .withStyle(Style.EMPTY
                                 .withUnderlined(true)
                                 .withColor(color)
-                                .withClickEvent(new ClickEvent.OpenUrl(URI.create(url)))
+                                .withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, url))
                         ));
 
                 lastEnd = matcher.end();
@@ -84,8 +84,8 @@ public class DiscordToMinecraftBridge extends MinecraftOwnedListener {
                 Component attachmentComponent = Component.literal(" [" + name + "]")
                         .withStyle(Style.EMPTY
                                 .withColor(color)
-                                .withClickEvent(new ClickEvent.OpenUrl(URI.create(attachment.getUrl())))
-                                .withHoverEvent(new HoverEvent.ShowText(hoverComponent))
+                                .withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, attachment.getUrl()))
+                                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hoverComponent))
                         );
 
                 baseComponent.append(attachmentComponent);
@@ -105,7 +105,7 @@ public class DiscordToMinecraftBridge extends MinecraftOwnedListener {
         MutableComponent username = optionallyColorMember(color, Component.literal(usernameString));
         MutableComponent nickname = optionallyColorMember(color, Component.literal(member.getEffectiveName()));
         if (DissonanceConfig.ADD_USERNAME_HOVER_TO_NICKNAME.get())
-            nickname = nickname.withStyle(nickname.getStyle().withHoverEvent(new HoverEvent.ShowText(Component.literal("@" + usernameString + " on Discord"))));
+            nickname = nickname.withStyle(nickname.getStyle().withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("@" + usernameString + " on Discord"))));
         MutableComponent content = formatDiscordContent(color, message);
         MutableComponent channelName = Component.literal(channel.getName());
 
@@ -117,8 +117,7 @@ public class DiscordToMinecraftBridge extends MinecraftOwnedListener {
 
         if (DissonanceConfig.LINK_TO_MESSAGE.get()) {
             try {
-                URI jumpUri = URI.create(message.getJumpUrl());
-                fullMessage = fullMessage.withStyle(fullMessage.getStyle().withClickEvent(new ClickEvent.OpenUrl(jumpUri)));
+                fullMessage = fullMessage.withStyle(fullMessage.getStyle().withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, message.getJumpUrl())));
             } catch (IllegalArgumentException ignored) {}
         }
 

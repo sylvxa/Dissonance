@@ -64,8 +64,8 @@ public class MinecraftToDiscordBridge {
 
     public static String getAvatarUrl(GameProfile profile) {
         return TemplateUtil.replace(DissonanceConfig.AVATAR_API.get(),
-                Map.of("%username%", profile.name(),
-                        "%uuid%", profile.id().toString(),
+                Map.of("%username%", profile.getName(),
+                        "%uuid%", profile.getId().toString(),
                         "%random%", UUID.randomUUID().toString()));
     }
 
@@ -128,7 +128,7 @@ public class MinecraftToDiscordBridge {
         if (webhook) {
             logQueue(WEBHOOK.sendMessage(formatted)
                 .setAvatarUrl(getAvatarUrl(profile))
-                .setUsername(profile.name())
+                .setUsername(profile.getName())
                 .setAllowedMentions(allowedMentions));
         } else {
             logQueue(channel.sendMessage(formatted)
@@ -161,7 +161,7 @@ public class MinecraftToDiscordBridge {
             if (eventValue.usePlayerAuthor.get() && player != null) {
                 GameProfile profile = player.getGameProfile();
                 builder.setAuthor(
-                        DissonanceConfig.NICKNAME_AUTHORS.get() ? player.getDisplayName().getString() : player.getGameProfile().name(),
+                        DissonanceConfig.NICKNAME_AUTHORS.get() ? player.getDisplayName().getString() : player.getGameProfile().getName(),
                         null,
                         getAvatarUrl(profile)
                 );

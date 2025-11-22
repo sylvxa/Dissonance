@@ -13,7 +13,7 @@ public class TemplateUtil {
     }
 
     public static String replaceWithPlayer(String template, Player player) {
-        return template.replace("%username%", player.getGameProfile().name())
+        return template.replace("%username%", player.getGameProfile().getName())
                 .replace("%nickname%", player.getDisplayName().getString());
     }
 

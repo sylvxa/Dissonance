@@ -1,6 +1,6 @@
 package lol.sylvie.dissonance;
 
-import fuzs.forgeconfigapiport.fabric.api.v5.ConfigRegistry;
+import fuzs.forgeconfigapiport.fabric.api.neoforge.v4.NeoForgeConfigRegistry;
 import lol.sylvie.dissonance.config.DissonanceConfig;
 import lol.sylvie.dissonance.discord.linking.DiscordLinking;
 import lol.sylvie.dissonance.minecraft.MinecraftEvents;
@@ -19,7 +19,7 @@ import net.neoforged.fml.config.ModConfig;
 public class FabricDissonance implements ModInitializer {
     @Override
     public void onInitialize() {
-        ConfigRegistry.INSTANCE.register(Constants.MOD_ID, ModConfig.Type.SERVER, DissonanceConfig.SPEC);
+        NeoForgeConfigRegistry.INSTANCE.register(Constants.MOD_ID, ModConfig.Type.SERVER, DissonanceConfig.SPEC);
 
         Dissonance.modInit();
 

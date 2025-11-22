@@ -11,7 +11,13 @@ import java.util.function.Predicate;
 public class DissonanceConfig {
     public static final ModConfigSpec SPEC;
 
-    private static final Predicate<Object> LONG_LIST_VALIDATOR = o -> o instanceof List<?> list && list.stream().allMatch(n -> n instanceof Long);
+    private static final Predicate<Object> LONG_LIST_VALIDATOR = o -> {
+        if (!(o instanceof List<?> list)) { System.out.println("NOT LIST"); return false; }
+        if (!list.stream().allMatch(n -> n instanceof Long)) { System.out.println("NOT LONG"); return false; }
+
+        return true;
+    };
+
     private static final Predicate<Object> COLOR_VALIDATOR = (value) -> {
         if (!(value instanceof String string)) return false;
         try {

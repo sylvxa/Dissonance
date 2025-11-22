@@ -19,7 +19,6 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.players.NameAndId;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,7 +33,7 @@ import java.util.stream.Collectors;
 // I suck at SQL
 public class DiscordLinking extends ListenerAdapter {
     public static Connection CONNECTION;
-    public static final HashMap<String, Pair<Long, NameAndId>> LINK_CODES = new HashMap<>();
+    public static final HashMap<String, Pair<Long, GameProfile>> LINK_CODES = new HashMap<>();
     public static final int LINK_CODE_LIFESPAN = 5 * 60 * 1000;
 
     public static final HashMap<UUID, String> MC_TO_DISCORD_CACHE = new HashMap<>();
@@ -80,7 +79,7 @@ public class DiscordLinking extends ListenerAdapter {
         return null;
     }
 
-    public static boolean hasCodeExpired(Pair<Long, NameAndId> code) {
+    public static boolean hasCodeExpired(Pair<Long, GameProfile> code) {
         return System.currentTimeMillis() - code.getFirst() > LINK_CODE_LIFESPAN;
     }
 
@@ -92,8 +91,8 @@ public class DiscordLinking extends ListenerAdapter {
     private static final Component SKILL_ISSUE = Component.literal("There is a configuration error with Discord linking, please contact the server owner.").withStyle(ChatFormatting.RED);
 
     public static String generateCode(GameProfile profile) {
-        for (Map.Entry<String, Pair<Long, NameAndId>> code : new HashSet<>(LINK_CODES.entrySet())) {
-            if (!code.getValue().getSecond().id().equals(profile.id())) continue;
+        for (Map.Entry<String, Pair<Long, GameProfile>> code : new HashSet<>(LINK_CODES.entrySet())) {
+            if (!code.getValue().getSecond().getId().equals(profile.getId())) continue;
 
             LINK_CODES.remove(code.getKey());
             break;
@@ -112,22 +111,21 @@ public class DiscordLinking extends ListenerAdapter {
             codeAsString = String.format("%06d", linkCode);
         } while (LINK_CODES.containsKey(codeAsString));
 
-        LINK_CODES.put(codeAsString, Pair.of(System.currentTimeMillis(), new NameAndId(profile)));
+        LINK_CODES.put(codeAsString, Pair.of(System.currentTimeMillis(), profile));
         return codeAsString;
     }
 
     public static @Nullable Component canPlayerJoin(MinecraftServer server, GameProfile profile) {
         if (!isWhitelistEnabled()) return null;
-        NameAndId nameAndId = new NameAndId(profile);
-        if (server.getPlayerList().isWhiteListed(nameAndId)) return null; // this includes operators too!
+        if (server.getPlayerList().isWhiteListed(profile)) return null; // this includes operators too!
         if (DiscordClient.CLIENT == null || !isConnected()) return Component.literal("The server is still starting, please wait a moment and try again.").withStyle(ChatFormatting.RED);
 
-        for (Map.Entry<String, Pair<Long, NameAndId>> codes : LINK_CODES.entrySet().stream().toList()) {
+        for (Map.Entry<String, Pair<Long, GameProfile>> codes : LINK_CODES.entrySet().stream().toList()) {
             if (hasCodeExpired(codes.getValue())) LINK_CODES.remove(codes.getKey());
         }
 
         // handle linking
-        String discordId = getDiscordFromMinecraft(profile.id());
+        String discordId = getDiscordFromMinecraft(profile.getId());
         if (discordId == null) {
             return Component.literal(DissonanceConfig.LINK_MESSAGE_TEMPLATE.get().replace("%code%", generateCode(profile)));
         }
