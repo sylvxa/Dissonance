@@ -56,6 +56,7 @@ Head over to the <a href="https://modrinth.com/mod/dissonance/versions" target="
 - [ ] Manage Messages *(required for `/dissonance purge`)*
 - [x] Embed Links
 - [ ] Move Members *(required for proximity chat)*
+- [ ] Mute Members *(suggested for proximity chat)*
 
 ![Permissions menu](/setup/images/permissions.png)
 

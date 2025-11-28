@@ -63,9 +63,10 @@ lobby_id = 0
 range = 48
 grace = 8
 frequency = 20
+mute_lobby_members = true
 ```
 
-You **must** create a Discord channel category and lobby voice channel for this functionality to work. Set the `category_id` and `lobby_id` to their respective snowflake IDs, and make sure to disable the `Speak` permission on the lobby channel for players. 
+You **must** create a Discord channel category and lobby voice channel for this functionality to work. Set the `category_id` and `lobby_id` to their respective snowflake IDs, and make sure to disable the `Speak` permission on the lobby channel for players. For `mute_lobby_members` to work correctly, you must give the bot the `Manage Permissions` and `Mute Members` permissions for the category.
 
 > WARNING! Any other voice channels in the proximity category will be deleted when the server restarts (in case the server crashes and there are left over channels).
 
@@ -74,6 +75,33 @@ The `range` field is the distance in blocks that players will have to be in to h
 The `grace` field is the distance a player can leave that field before being kicked out of a group (this avoids rapid channel creation/deletion and thus ratelimiting).
 
 The `frequency` option is how many ticks pass between proximity group updates. If you have a lot of players and are running into Discord rate limit issues, increase this. Generally, I recommend going lower than `20`, but if you need faster updates you can set it lower.
+
+The `mute_lobby_members` option decides if members should be server muted in the lobby. This requires that the bot has both the `Manage Permissions` and `Mute Members` permissions for the category.
+
+## Activity
+
+The Discord bot may have an activity (a.k.a. status or presence) that updates on a given interval
+
+Here are the configuration options:
+
+```toml
+[discord.activity]
+enabled = true
+#Valid types: PLAYING, STREAMING, LISTENING, WATCHING, CUSTOM_STATUS, COMPETING
+type = "PLAYING"
+#Placeholders: %players%, %max%
+template = "Minecraft (%players%/%max%)"
+streaming_url = "https://www.twitch.tv/sylvxa"
+update_frequency = 60
+```
+
+The `type` field dictates how the Discord activity is displayed. `STREAMING`, for example, will display a purple arrow next to the bots name in the member list and have a button that links to the `streaming_url`.
+
+The `template` field is the message that goes with the activity.
+
+The `streaming_url` is the URL that will be linked if the `type` is `STREAMING`
+
+The `update_frequency` is the time, in seconds, between activity updates.
 
 ## Events
 
