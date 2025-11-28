@@ -51,7 +51,7 @@ public class MinecraftEvents {
                 tickAttemptsProximity = 0;
             }
 
-            if (isOnInterval(ticksPassed, DissonanceConfig.ACTIVITY_UPDATE_FREQUENCY.get())) {
+            if (isOnInterval(ticksPassed, DissonanceConfig.ACTIVITY_UPDATE_FREQUENCY.get() * 20)) {
                 DiscordClient.updateActivity(server);
             }
         } catch (RuntimeException e) {
