@@ -4,10 +4,12 @@ import lol.sylvie.dissonance.Constants;
 import lol.sylvie.dissonance.config.DissonanceConfig;
 import lol.sylvie.dissonance.discord.command.impl.LinkCommand;
 import lol.sylvie.dissonance.discord.command.impl.UnlinkCommand;
+import lol.sylvie.dissonance.discord.events.DiscordEvents;
 import lol.sylvie.dissonance.minecraft.MinecraftToDiscordBridge;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Webhook;
 import net.dv8tion.jda.api.entities.WebhookClient;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
@@ -72,7 +74,6 @@ public class DiscordClient {
 
             if (channel == null) {
                 Constants.LOG.error("Cannot access channel {}, make sure the ID is valid and that the bot has the \"View Channel\" permission.", id);
-                continue;
             } else if (!channel.getGuild().getSelfMember().hasPermission(channel, Permission.VIEW_CHANNEL)) {
                 Constants.LOG.error("The bot can't read #{}, make sure that the bot has permission to view it.", channel.getName());
             }
@@ -84,13 +85,16 @@ public class DiscordClient {
             CLIENT = JDABuilder.createLight(DissonanceConfig.DISCORD_TOKEN.get(), EnumSet.of(GatewayIntent.GUILD_VOICE_STATES, GatewayIntent.GUILD_MESSAGES, GatewayIntent.MESSAGE_CONTENT, GatewayIntent.GUILD_MEMBERS))
                     .addEventListeners(new DiscordToMinecraftBridge(server))
                     .addEventListeners(new LinkCommand(), new UnlinkCommand())
+                    .addEventListeners(new DiscordEvents())
                     .setMemberCachePolicy(MemberCachePolicy.ALL)
                     .enableCache(CacheFlag.VOICE_STATE)
                     .build();
             CLIENT.awaitReady();
-
+            CLIENT.addEventListener();
             ensureOutputs();
             ensureInputs();
+
+            updateActivity(server);
         } catch (InvalidTokenException e) {
             friendlyMessageBox(
                     "HEY, LISTEN! Your Discord token is invalid! (it's okay if this is the first time the server has been started)",
@@ -105,5 +109,15 @@ public class DiscordClient {
         }
 
         return CLIENT;
+    }
+
+    public static void updateActivity(MinecraftServer server) {
+        if (!DissonanceConfig.ACTIVITY_ENABLED.get()) return;
+
+        Activity.ActivityType type = Activity.ActivityType.valueOf(DissonanceConfig.ACTIVITY_TYPE.get());
+        String message = DissonanceConfig.ACTIVITY_TEMPLATE.get()
+                .replace("%players%", String.valueOf(server.getPlayerCount()))
+                .replace("%max%", String.valueOf(server.getMaxPlayers()));
+        CLIENT.getPresence().setActivity(Activity.of(type, message, DissonanceConfig.STREAMING_URL.get()));
     }
 }

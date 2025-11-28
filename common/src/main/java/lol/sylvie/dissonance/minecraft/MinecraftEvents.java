@@ -2,6 +2,7 @@ package lol.sylvie.dissonance.minecraft;
 
 import lol.sylvie.dissonance.Constants;
 import lol.sylvie.dissonance.config.DissonanceConfig;
+import lol.sylvie.dissonance.discord.DiscordClient;
 import lol.sylvie.dissonance.discord.linking.DiscordLinking;
 import lol.sylvie.dissonance.discord.proximity.DiscordProximity;
 import net.minecraft.advancements.AdvancementHolder;
@@ -38,11 +39,20 @@ public class MinecraftEvents {
 
     // this is the most error-prone area of the mod
     private static int tickAttemptsProximity = 0;
+    private static boolean isOnInterval(int ticks, int frequency) {
+        return ticks % frequency == 0;
+    }
+
     public static void tick(MinecraftServer server) {
         try {
-            if (server.getTickCount() % DissonanceConfig.PROXIMITY_UPDATE_FREQUENCY.get() == 0) {
+            int ticksPassed = server.getTickCount();
+            if (isOnInterval(ticksPassed, DissonanceConfig.PROXIMITY_UPDATE_FREQUENCY.get())) {
                 DiscordProximity.update(server);
                 tickAttemptsProximity = 0;
+            }
+
+            if (isOnInterval(ticksPassed, DissonanceConfig.ACTIVITY_UPDATE_FREQUENCY.get())) {
+                DiscordClient.updateActivity(server);
             }
         } catch (RuntimeException e) {
             Constants.LOG.error("Couldn't update Discord proximity!", e);

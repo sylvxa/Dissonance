@@ -11,9 +11,12 @@ import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.concrete.Category;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
+import net.dv8tion.jda.api.entities.channel.unions.AudioChannelUnion;
+import net.dv8tion.jda.api.events.guild.voice.GuildVoiceUpdateEvent;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -25,6 +28,7 @@ import java.util.stream.Collectors;
  */
 public class DiscordProximity {
     public static boolean ENABLED = false;
+    public static final HashSet<Long> MUTED = new HashSet<>();
 
     private static GuildVoiceState getNonEmptyState(Member member) {
         GuildVoiceState state = member.getVoiceState();
@@ -64,6 +68,9 @@ public class DiscordProximity {
     }
 
     public static void init() {
+        ENABLED = DissonanceConfig.LINKING_ENABLED.get() && DissonanceConfig.PROXIMITY_ENABLED.get();
+        if (!ENABLED) return;
+
         Guild guild = DiscordLinking.getGuild();
         if (guild == null || getLobbyChannel(guild) == null) {
             ENABLED = false;
@@ -78,15 +85,20 @@ public class DiscordProximity {
             return;
         }
 
-        for (GuildChannel channel : category.getChannels()) {
-            if (channel.getType() != ChannelType.VOICE || DissonanceConfig.PROXIMITY_LOBBY_ID.get().equals(channel.getIdLong())) continue;
 
-            channel.delete().queue();
-        }
-
-        ENABLED = DissonanceConfig.LINKING_ENABLED.get() && DissonanceConfig.PROXIMITY_ENABLED.get();
         if (ENABLED) {
+            for (GuildChannel channel : category.getChannels()) {
+                if (channel.getType() != ChannelType.VOICE || DissonanceConfig.PROXIMITY_LOBBY_ID.get().equals(channel.getIdLong())) continue;
+
+                channel.delete().queue();
+            }
+
+            if (!guild.getSelfMember().hasPermission(category, Set.of(Permission.MANAGE_PERMISSIONS, Permission.VOICE_MUTE_OTHERS)) && DissonanceConfig.MUTE_LOBBY_MEMBERS.get()) {
+                Constants.LOG.error("Cannot mute lobby members! (the bot must have the Manage Permissions and Mute Members permissions for the category!)");
+            }
+
             Constants.LOG.warn("Proximity chat is experimental. Use with caution!");
+
         }
     }
 
@@ -198,5 +210,25 @@ public class DiscordProximity {
         group.remove(uuid, false, true);
         group.implodeIfNeeded();
         playerToGroup.remove(uuid);
+    }
+
+    public static void onGuildVoiceUpdate(@NotNull GuildVoiceUpdateEvent event) {
+        AudioChannelUnion oldChannel = event.getChannelLeft();
+        AudioChannelUnion newChannel = event.getChannelJoined();
+        Long lobbyId = DissonanceConfig.PROXIMITY_LOBBY_ID.get();
+        Member member = event.getEntity();
+        Long memberId = member.getIdLong();
+        Guild guild = event.getGuild();
+
+        Category category = getCategory(guild);
+        boolean mayMute = category != null && guild.getSelfMember().hasPermission(category, Set.of(Permission.MANAGE_PERMISSIONS, Permission.VOICE_MUTE_OTHERS)) && DissonanceConfig.MUTE_LOBBY_MEMBERS.get();
+        boolean wasMuted = MUTED.contains(memberId);
+        if (!mayMute) return;
+        if (((oldChannel != null && lobbyId.equals(oldChannel.getIdLong())) || newChannel == null) && wasMuted) {
+            member.mute(false).queue();
+        } else if (newChannel != null && lobbyId.equals(newChannel.getIdLong())) {
+            member.mute(true).queue();
+            MUTED.add(memberId);
+        }
     }
 }

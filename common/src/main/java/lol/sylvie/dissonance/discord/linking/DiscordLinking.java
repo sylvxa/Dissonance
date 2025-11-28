@@ -15,6 +15,7 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
+import net.dv8tion.jda.api.events.guild.voice.GuildVoiceUpdateEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -32,7 +33,7 @@ import java.util.stream.Collectors;
 
 // There's so much repeated code here
 // I suck at SQL
-public class DiscordLinking extends ListenerAdapter {
+public class DiscordLinking {
     public static Connection CONNECTION;
     public static final HashMap<String, Pair<Long, NameAndId>> LINK_CODES = new HashMap<>();
     public static final int LINK_CODE_LIFESPAN = 5 * 60 * 1000;
@@ -213,8 +214,7 @@ public class DiscordLinking extends ListenerAdapter {
         return guild.retrieveMemberById(discordId).complete();
     }
 
-    @Override
-    public void onGuildMemberRemove(@NotNull GuildMemberRemoveEvent event) {
+    public static void onGuildMemberRemove(@NotNull GuildMemberRemoveEvent event) {
         try {
             removeLinkFromDiscord(event.getUser().getId());
         } catch (SQLException ignored) {}

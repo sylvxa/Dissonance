@@ -1,10 +1,12 @@
 package lol.sylvie.dissonance.config;
 
+import net.dv8tion.jda.api.entities.Activity;
 import net.neoforged.neoforge.common.ModConfigSpec;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -62,6 +64,13 @@ public class DissonanceConfig {
     public static final ModConfigSpec.ConfigValue<Integer> PROXIMITY_RADIUS;
     public static final ModConfigSpec.ConfigValue<Integer> PROXIMITY_GRACE_PERIOD;
     public static final ModConfigSpec.ConfigValue<Integer> PROXIMITY_UPDATE_FREQUENCY;
+    public static final ModConfigSpec.ConfigValue<Boolean> MUTE_LOBBY_MEMBERS;
+
+    public static final ModConfigSpec.ConfigValue<Boolean> ACTIVITY_ENABLED;
+    public static final ModConfigSpec.ConfigValue<String> ACTIVITY_TYPE;
+    public static final ModConfigSpec.ConfigValue<String> ACTIVITY_TEMPLATE;
+    public static final ModConfigSpec.ConfigValue<String> STREAMING_URL;
+    public static final ModConfigSpec.ConfigValue<Integer> ACTIVITY_UPDATE_FREQUENCY;
 
     public static final ModConfigSpec.ConfigValue<Boolean> USE_WEBHOOK_FOR_EVENTS;
     public static final ModConfigSpec.ConfigValue<Boolean> NICKNAME_AUTHORS;
@@ -199,7 +208,44 @@ public class DissonanceConfig {
                 .comment("How often proximity chat will update.", "Value in ticks (checks every N ticks)")
                 .define("frequency", 20);
 
+        MUTE_LOBBY_MEMBERS = builder
+                .comment("If members in the lobby should be server muted.")
+                .define("mute_lobby_members", true);
+
         builder.pop();
+
+        builder.pop();
+
+        builder.push("activity");
+
+        ACTIVITY_ENABLED = builder
+                .comment("If the Discord bot should have an activity.")
+                .define("enabled", true);
+
+        List<String> VALID_ACTIVITIES = Arrays.stream(Activity.ActivityType.values()).map(Enum::name).toList();
+        ACTIVITY_TYPE = builder
+                .comment("What type of activity the bot should have", "Valid types: " + String.join(", ", VALID_ACTIVITIES))
+                .define("type", "PLAYING", (t) -> {
+                    try {
+                        if (t instanceof String type) {
+                            Activity.ActivityType.valueOf(type);
+                            return true;
+                        }
+                    } catch (IllegalArgumentException ignored) {}
+                    return false;
+                });
+
+        ACTIVITY_TEMPLATE = builder
+                .comment("The message that will be the bot's activity", "Placeholders: %players%, %max%")
+                .define("template", "Minecraft (%players%/%max%)");
+
+        STREAMING_URL = builder
+                .comment("The URL that will be displayed if the activity is set to STREAMING")
+                .define("streaming_url", "https://www.twitch.tv/sylvxa");
+
+        ACTIVITY_UPDATE_FREQUENCY = builder
+                .comment("How often the bot will update its status (in seconds)")
+                .define("update_frequency", 60);
 
         builder.pop();
 
