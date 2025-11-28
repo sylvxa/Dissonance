@@ -39,7 +39,7 @@ public class ProximityGroup {
 
         category.createVoiceChannel(this.groupId.toString())
                 .addPermissionOverride(guild.getPublicRole(), List.of(Permission.VOICE_SPEAK), List.of(Permission.VIEW_CHANNEL))
-                .addPermissionOverride(guild.getSelfMember(), List.of(Permission.VIEW_CHANNEL, Permission.VOICE_MOVE_OTHERS), List.of())
+                .addPermissionOverride(guild.getSelfMember(), List.of(Permission.VOICE_MUTE_OTHERS, Permission.VIEW_CHANNEL, Permission.VOICE_MOVE_OTHERS), List.of())
                 .queue(this::onChannelCreate);
     }
 
