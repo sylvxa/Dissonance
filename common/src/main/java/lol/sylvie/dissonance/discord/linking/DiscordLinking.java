@@ -81,6 +81,12 @@ public class DiscordLinking {
         return null;
     }
 
+    public static Guild getGuildNonnull() {
+        Guild guild = getGuild();
+        if (guild == null) throw new IllegalStateException("getGuildNonnull called while guild was null!");
+        return guild;
+    }
+
     public static boolean hasCodeExpired(Pair<Long, NameAndId> code) {
         return System.currentTimeMillis() - code.getFirst() > LINK_CODE_LIFESPAN;
     }
@@ -89,7 +95,6 @@ public class DiscordLinking {
         return DissonanceConfig.LINKING_ENABLED.get() && DissonanceConfig.WHITELIST_ENABLED.get();
     }
 
-    // Returns null if they can, returns reason why if not
     private static final Component SKILL_ISSUE = Component.literal("There is a configuration error with Discord linking, please contact the server owner.").withStyle(ChatFormatting.RED);
 
     public static String generateCode(GameProfile profile) {
@@ -117,10 +122,11 @@ public class DiscordLinking {
         return codeAsString;
     }
 
+    // Returns null if they can, returns reason why if not
     public static @Nullable Component canPlayerJoin(MinecraftServer server, GameProfile profile) {
         if (!isWhitelistEnabled()) return null;
         NameAndId nameAndId = new NameAndId(profile);
-        if (server.getPlayerList().isWhiteListed(nameAndId)) return null; // this includes operators too!
+        if (server.getPlayerList().isUsingWhitelist() && server.getPlayerList().isWhiteListed(nameAndId)) return null; // this includes operators too!
         if (DiscordClient.CLIENT == null || !isConnected()) return Component.literal("The server is still starting, please wait a moment and try again.").withStyle(ChatFormatting.RED);
 
         for (Map.Entry<String, Pair<Long, NameAndId>> codes : LINK_CODES.entrySet().stream().toList()) {

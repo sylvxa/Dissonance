@@ -4,6 +4,7 @@ import lol.sylvie.dissonance.config.DissonanceConfig;
 import lol.sylvie.dissonance.discord.DiscordToMinecraftBridge;
 import lol.sylvie.dissonance.discord.DiscordClient;
 import lol.sylvie.dissonance.discord.linking.DiscordLinking;
+import lol.sylvie.dissonance.discord.proximity.DiscordProximity;
 import lol.sylvie.dissonance.minecraft.MinecraftToDiscordBridge;
 import lol.sylvie.dissonance.platform.Services;
 import lol.sylvie.dissonance.util.ConsoleUtil;
@@ -57,6 +58,7 @@ public class Dissonance {
 
     private static void stop() {
         DiscordLinking.close();
+        DiscordProximity.close();
 
         SHUTTING_DOWN = true;
         DiscordClient.CLIENT.shutdownNow();

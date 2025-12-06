@@ -6,6 +6,9 @@ import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.neoforge.server.permission.PermissionAPI;
 import net.neoforged.neoforge.server.permission.nodes.PermissionNode;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 
 public class NeoForgePlatformHelper implements IPlatformHelper {
@@ -24,5 +27,12 @@ public class NeoForgePlatformHelper implements IPlatformHelper {
     @Override
     public boolean isDevelopmentEnvironment() {
         return !FMLLoader.getCurrent().isProduction();
+    }
+
+    @Override
+    public Path getConfigDir() {
+        Path configDir = FMLLoader.getCurrent().getGameDir().resolve("config");
+        if (Files.notExists(configDir)) if (!configDir.toFile().mkdir()) throw new IllegalStateException("Cannot get or make config directory!");
+        return configDir;
     }
 }

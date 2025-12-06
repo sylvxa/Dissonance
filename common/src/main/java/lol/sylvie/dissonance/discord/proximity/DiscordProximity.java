@@ -1,24 +1,30 @@
 package lol.sylvie.dissonance.discord.proximity;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonSyntaxException;
 import lol.sylvie.dissonance.Constants;
 import lol.sylvie.dissonance.config.DissonanceConfig;
 import lol.sylvie.dissonance.discord.linking.DiscordLinking;
+import lol.sylvie.dissonance.platform.Services;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.GuildVoiceState;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
+import net.dv8tion.jda.api.entities.channel.attribute.ICategorizableChannel;
 import net.dv8tion.jda.api.entities.channel.concrete.Category;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.entities.channel.unions.AudioChannelUnion;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceUpdateEvent;
+import net.dv8tion.jda.internal.utils.Checks;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -28,7 +34,9 @@ import java.util.stream.Collectors;
  */
 public class DiscordProximity {
     public static boolean ENABLED = false;
+
     public static final HashSet<Long> MUTED = new HashSet<>();
+    public static final File MUTED_FILE = Services.PLATFORM.getConfigDir().resolve("dissonance_muted.json").toFile();
 
     private static GuildVoiceState getNonEmptyState(Member member) {
         GuildVoiceState state = member.getVoiceState();
@@ -36,7 +44,7 @@ public class DiscordProximity {
         return state;
     }
 
-    public static boolean isInProximityCategory(VoiceChannel channel) {
+    public static boolean isInProximityCategory(ICategorizableChannel channel) {
         return DissonanceConfig.PROXIMITY_CATEGORY_ID.get().equals(channel.getParentCategoryIdLong());
     }
 
@@ -70,6 +78,18 @@ public class DiscordProximity {
     public static void init() {
         ENABLED = DissonanceConfig.LINKING_ENABLED.get() && DissonanceConfig.PROXIMITY_ENABLED.get();
         if (!ENABLED) return;
+
+        if (MUTED_FILE.exists()) {
+            try (FileReader reader = new FileReader(MUTED_FILE)) {
+                JsonArray object = Constants.GSON.fromJson(reader, JsonArray.class);
+                object.forEach((e) -> {
+                    if (!e.isJsonPrimitive()) return;
+                    Long value = e.getAsLong();
+                    Checks.isSnowflake(String.valueOf(e.getAsString()));
+                    MUTED.add(value);
+                });
+            } catch (IOException | IllegalArgumentException | JsonSyntaxException ignored) {}
+        }
 
         Guild guild = DiscordLinking.getGuild();
         if (guild == null || getLobbyChannel(guild) == null) {
@@ -224,11 +244,31 @@ public class DiscordProximity {
         boolean mayMute = category != null && guild.getSelfMember().hasPermission(category, Set.of(Permission.MANAGE_PERMISSIONS, Permission.VOICE_MUTE_OTHERS)) && DissonanceConfig.MUTE_LOBBY_MEMBERS.get();
         boolean wasMuted = MUTED.contains(memberId);
         if (!mayMute) return;
-        if (((oldChannel != null && lobbyId.equals(oldChannel.getIdLong())) || newChannel == null) && wasMuted) {
+        if (((oldChannel != null && lobbyId.equals(oldChannel.getIdLong())) || (newChannel != null && !isInProximityCategory(newChannel) && guild.getSelfMember().hasPermission(newChannel, Permission.VOICE_MUTE_OTHERS))) && wasMuted) {
             member.mute(false).queue();
-        } else if (newChannel != null && lobbyId.equals(newChannel.getIdLong())) {
+        } else if (newChannel != null && lobbyId.equals(newChannel.getIdLong()) && (member.getVoiceState() != null && !member.getVoiceState().isGuildMuted())) {
             member.mute(true).queue();
             MUTED.add(memberId);
         }
+    }
+
+    public static void close() {
+        if (!ENABLED) return;
+        try {
+            HashSet<Long> removed = new HashSet<>();
+            for (Long id : MUTED) {
+                Member member = DiscordLinking.getGuildNonnull().getMemberById(id);
+                if (member == null || member.getVoiceState() == null) continue;
+                member.mute(false).submit().join();
+                removed.add(id);
+            }
+            removed.forEach(MUTED::remove);
+        } catch (RuntimeException ignored) {} // I'm not expecting any errors, but this should save us in case there are any!
+
+        try (FileWriter writer = new FileWriter(MUTED_FILE)) {
+            JsonArray array = new JsonArray(MUTED.size());
+            MUTED.forEach(array::add);
+            Constants.GSON.toJson(array, writer);
+        } catch (IOException ignored) {}
     }
 }
