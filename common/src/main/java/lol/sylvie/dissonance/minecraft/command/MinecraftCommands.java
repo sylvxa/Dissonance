@@ -8,6 +8,7 @@ import lol.sylvie.dissonance.Constants;
 import lol.sylvie.dissonance.discord.linking.DiscordLinking;
 import lol.sylvie.dissonance.minecraft.MinecraftToDiscordBridge;
 import lol.sylvie.dissonance.platform.Services;
+import lol.sylvie.dissonance.platform.services.IPlatformHelper;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.minecraft.ChatFormatting;
@@ -15,7 +16,9 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.server.commands.OpCommand;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.permissions.PermissionCheck;
 
 import java.sql.SQLException;
 import java.util.UUID;
@@ -32,8 +35,11 @@ public class MinecraftCommands {
         dispatcher.register(builder);
     }
 
-    public static Predicate<CommandSourceStack> getPermissionPredicate(String permission, int value) {
-        return s -> s.isPlayer() ? Services.PLATFORM.hasPermission(s.getPlayer(), permission, value) : s.hasPermission(value);
+    public static Predicate<CommandSourceStack> getPermissionPredicate(String permission, PermissionCheck value) {
+        return s -> {
+            boolean defaultValue = value.check(s.permissions());
+            return s.isPlayer() && !Services.PLATFORM.getPlatform().equals(IPlatformHelper.Platform.NEOFORGE) ? Services.PLATFORM.hasPermission(s.getPlayer(), permission, defaultValue) : value.check(s.permissions());
+        };
     }
 
     private static final SimpleCommandExceptionType NO_CHANNEL = new SimpleCommandExceptionType(Component.literal("The output channel cannot be accessed or the bot is missing required permissions."));

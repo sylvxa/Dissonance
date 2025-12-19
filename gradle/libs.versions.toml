@@ -2,8 +2,8 @@
 jda = "6.1.1"
 sqlitejdbc = "3.51.0.0"
 
-forgeconfigapiport = "21.10.0"
-fabricpermissions = "0.5.0"
+forgeconfigapiport = "21.11.0"
+fabricpermissions = "0.6.1"
 
 [libraries]
 jda = { group = "net.dv8tion", name = "JDA", version.ref = "jda" }
@@ -24,6 +24,9 @@ websocket = { group = "com.neovisionaries", name = "nv-websocket-client", versio
 okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version = "5.3.0" }
 okio = { group = "com.squareup.okio", name = "okio-jvm", version = "3.16.2" }
 tink = { group = "com.google.crypto.tink", name = "tink", version = "1.18.0" }
+jackson-core = { module = "com.fasterxml.jackson.core:jackson-core", version = "2.20.1" }
+jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version = "2.20.1" }
+jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version = "2.20"  }
 
 [bundles]
-jda_requires = ["commons-collections", "kotlin-stdlib", "trove4j", "websocket", "okhttp", "okio", "tink"]
+jda_requires = ["commons-collections", "kotlin-stdlib", "trove4j", "websocket", "okhttp", "okio", "tink", "jackson-core", "jackson-databind", "jackson-annotations"]

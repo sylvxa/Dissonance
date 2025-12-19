@@ -6,8 +6,6 @@ public class DissonancePermissions {
     // right now this serves no purpose since neoforge already has command permissions
     // but i'm sure this'll be useful later
     public static final Map<String, Boolean> NODES = Map.of(
-        "dissonance.purge", false,
-        "dissonance.link", true,
-        "dissonance.unlink", true
+
     );
 }

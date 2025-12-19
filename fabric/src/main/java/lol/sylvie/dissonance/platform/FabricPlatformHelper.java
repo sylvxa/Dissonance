@@ -4,17 +4,18 @@ import lol.sylvie.dissonance.platform.services.IPlatformHelper;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.permissions.PermissionCheck;
 
 import java.nio.file.Path;
 
 public class FabricPlatformHelper implements IPlatformHelper {
     @Override
-    public String getPlatformName() {
-        return "Fabric";
+    public Platform getPlatform() {
+        return Platform.FABRIC;
     }
 
     @Override
-    public boolean hasPermission(ServerPlayer player, String node, int defaultValue) {
+    public boolean hasPermission(ServerPlayer player, String node, boolean defaultValue) {
         return Permissions.check(player, node, defaultValue);
     }
 

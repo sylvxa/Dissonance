@@ -5,22 +5,22 @@ import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.neoforge.server.permission.PermissionAPI;
 import net.neoforged.neoforge.server.permission.nodes.PermissionNode;
+import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashMap;
 
 public class NeoForgePlatformHelper implements IPlatformHelper {
-    public static final HashMap<String, PermissionNode<Boolean>> NODES = new HashMap<>();
+    public static final HashMap<String, PermissionNode<@NotNull Boolean>> NODES = new HashMap<>();
 
     @Override
-    public String getPlatformName() {
-        return "NeoForge";
+    public Platform getPlatform() {
+        return Platform.NEOFORGE;
     }
 
     @Override
-    public boolean hasPermission(ServerPlayer player, String node, int defaultValue) {
+    public boolean hasPermission(ServerPlayer player, String node, boolean defaultValue) {
         return PermissionAPI.getPermission(player, NODES.get(node));
     }
 

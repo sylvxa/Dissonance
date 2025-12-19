@@ -17,7 +17,7 @@ public class Dissonance {
     public static boolean SHUTTING_DOWN = false;
 
     public static void modInit() {
-        Constants.LOG.info("Dissonance running on {}", Services.PLATFORM.getPlatformName());
+        Constants.LOG.info("Dissonance running on {}", Services.PLATFORM.getPlatform().getRealName());
 
         if (Services.PLATFORM.isDevelopmentEnvironment()) {
             Constants.LOG.info(":O We are in a development environment! Hi, developer <3");
