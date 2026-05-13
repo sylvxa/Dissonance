@@ -12,6 +12,7 @@ import lol.sylvie.dissonance.platform.NeoForgePlatformHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.network.ServerConfigurationPacketListenerImpl;
+import net.minecraft.server.players.UserWhiteList;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
@@ -50,18 +51,6 @@ public class NeoForgeDissonance {
 
         // Events
         NeoForge.EVENT_BUS.addListener((Consumer<ServerStartedEvent>) event -> Dissonance.serverStarted(event.getServer(), () -> registerEvents(bus)));
-
-        bus.addListener(this::onGatherLoginConfigurationTasks);
-    }
-
-    public void onGatherLoginConfigurationTasks(RegisterConfigurationTasksEvent event) {
-        if (!(event.getListener() instanceof ServerConfigurationPacketListenerImpl listener)) return;
-
-        GameProfile gameProfile = listener.getOwner();
-        Component failureReason = DiscordLinking.canPlayerJoin(listener.server, gameProfile);
-        if (failureReason == null) return;
-
-        listener.disconnect(failureReason);
     }
 
     public void registerEvents(IEventBus bus) {

@@ -2,7 +2,6 @@ package lol.sylvie.dissonance;
 
 import fuzs.forgeconfigapiport.fabric.api.v5.ConfigRegistry;
 import lol.sylvie.dissonance.config.DissonanceConfig;
-import lol.sylvie.dissonance.discord.linking.DiscordLinking;
 import lol.sylvie.dissonance.minecraft.MinecraftEvents;
 import lol.sylvie.dissonance.minecraft.MinecraftToDiscordBridge;
 import lol.sylvie.dissonance.minecraft.command.MinecraftCommands;
@@ -12,8 +11,6 @@ import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.message.v1.ServerMessageEvents;
-import net.fabricmc.fabric.api.networking.v1.ServerLoginConnectionEvents;
-import net.minecraft.network.chat.Component;
 import net.neoforged.fml.config.ModConfig;
 
 public class FabricDissonance implements ModInitializer {
@@ -24,12 +21,6 @@ public class FabricDissonance implements ModInitializer {
         Dissonance.modInit();
 
         CommandRegistrationCallback.EVENT.register((dispatcher, context, environment) -> MinecraftCommands.register(dispatcher));
-
-        ServerLoginConnectionEvents.QUERY_START.register((handler, server, sender, synchronizer) -> {
-            Component failureReason = DiscordLinking.canPlayerJoin(server, handler.authenticatedProfile);
-            if (failureReason == null) return;
-            handler.disconnect(failureReason);
-        });
 
         // Events
         ServerLifecycleEvents.SERVER_STARTED.register(server -> Dissonance.serverStarted(server, this::registerEvents));

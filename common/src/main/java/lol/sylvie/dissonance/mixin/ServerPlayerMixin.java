@@ -19,7 +19,7 @@ public abstract class ServerPlayerMixin extends Player {
     }
 
     @Inject(method = "die", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/damagesource/CombatTracker;getDeathMessage()Lnet/minecraft/network/chat/Component;", shift = At.Shift.AFTER))
-    public void dissonance$onDeath(DamageSource cause, CallbackInfo ci) {
+    public void dissonance$onDeath(DamageSource source, CallbackInfo ci) {
         if (!MinecraftToDiscordBridge.ENABLED) return;
         MinecraftEvents.onPlayerDeath(this, this.getCombatTracker().getDeathMessage());
     }

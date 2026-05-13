@@ -122,7 +122,7 @@ public class DissonanceConfig {
 
         AVATAR_API = builder
                 .comment("The API used for webhook message avatars (will do nothing if use_webhook is false)", "Placeholders: %username%, %uuid%, %random%")
-                .define("avatar_api", "https://mc-heads.net/avatar/%uuid%");
+                .define("avatar_api", "https://api.mcheads.org/head/%username%/256/hat");
 
         DISCORD_MESSAGE_TEMPLATE = builder
                 .comment("How Minecraft messages should be formatted when being sent to Discord", "Placeholders: %username%, %nickname%, %content%")

@@ -1,6 +1,5 @@
 package lol.sylvie.dissonance.discord.linking;
 
-import com.mojang.authlib.GameProfile;
 import com.mojang.datafixers.util.Pair;
 import lol.sylvie.dissonance.Constants;
 import lol.sylvie.dissonance.config.DissonanceConfig;
@@ -8,19 +7,17 @@ import lol.sylvie.dissonance.discord.DiscordClient;
 import lol.sylvie.dissonance.discord.command.DiscordCommands;
 import lol.sylvie.dissonance.discord.proximity.DiscordProximity;
 import lol.sylvie.dissonance.minecraft.MinecraftToDiscordBridge;
-import lol.sylvie.dissonance.platform.Services;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.ISnowflake;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
-import net.dv8tion.jda.api.events.guild.voice.GuildVoiceUpdateEvent;
-import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.players.NameAndId;
+import net.minecraft.server.players.PlayerList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -97,7 +94,7 @@ public class DiscordLinking {
 
     private static final Component SKILL_ISSUE = Component.literal("There is a configuration error with Discord linking, please contact the server owner.").withStyle(ChatFormatting.RED);
 
-    public static String generateCode(GameProfile profile) {
+    public static String generateCode(NameAndId profile) {
         for (Map.Entry<String, Pair<Long, NameAndId>> code : new HashSet<>(LINK_CODES.entrySet())) {
             if (!code.getValue().getSecond().id().equals(profile.id())) continue;
 
@@ -118,15 +115,14 @@ public class DiscordLinking {
             codeAsString = String.format("%06d", linkCode);
         } while (LINK_CODES.containsKey(codeAsString));
 
-        LINK_CODES.put(codeAsString, Pair.of(System.currentTimeMillis(), new NameAndId(profile)));
+        LINK_CODES.put(codeAsString, Pair.of(System.currentTimeMillis(), profile));
         return codeAsString;
     }
 
     // Returns null if they can, returns reason why if not
-    public static @Nullable Component canPlayerJoin(MinecraftServer server, GameProfile profile) {
+    public static @Nullable Component canPlayerJoin(PlayerList playerList, NameAndId nameAndId) {
         if (!isWhitelistEnabled()) return null;
-        NameAndId nameAndId = new NameAndId(profile);
-        if (server.getPlayerList().isUsingWhitelist() && server.getPlayerList().isWhiteListed(nameAndId)) return null; // this includes operators too!
+        if (playerList.isUsingWhitelist() && playerList.isWhiteListed(nameAndId)) return null; // this includes operators too!
         if (DiscordClient.CLIENT == null || !isConnected()) return Component.literal("The server is still starting, please wait a moment and try again.").withStyle(ChatFormatting.RED);
 
         for (Map.Entry<String, Pair<Long, NameAndId>> codes : LINK_CODES.entrySet().stream().toList()) {
@@ -134,9 +130,9 @@ public class DiscordLinking {
         }
 
         // handle linking
-        String discordId = getDiscordFromMinecraft(profile.id());
+        String discordId = getDiscordFromMinecraft(nameAndId.id());
         if (discordId == null) {
-            return Component.literal(DissonanceConfig.LINK_MESSAGE_TEMPLATE.get().replace("%code%", generateCode(profile)));
+            return Component.literal(DissonanceConfig.LINK_MESSAGE_TEMPLATE.get().replace("%code%", generateCode(nameAndId)));
         }
 
         Guild guild = getGuild();

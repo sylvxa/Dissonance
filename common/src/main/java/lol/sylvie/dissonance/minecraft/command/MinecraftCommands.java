@@ -16,7 +16,6 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.server.commands.OpCommand;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.permissions.PermissionCheck;
 
@@ -112,7 +111,7 @@ public class MinecraftCommands {
                         throw ALREADY_LINKED.create();
                     }
 
-                    String linkCode = DiscordLinking.generateCode(player.getGameProfile());
+                    String linkCode = DiscordLinking.generateCode(player.nameAndId());
                     context.getSource().sendSuccess(() -> Component.literal("Your link code is ").append(Component.literal(linkCode).withStyle(ChatFormatting.BOLD)), false);
 
                     return 0;
