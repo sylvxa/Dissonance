@@ -2,7 +2,7 @@
 jda = "6.7.0"
 sqlitejdbc = "3.51.0.0"
 
-forgeconfigapiport = "26.2.1"
+forgeconfigapiport = "26.3.1"
 fabricpermissions = "0.7.0"
 
 [libraries]

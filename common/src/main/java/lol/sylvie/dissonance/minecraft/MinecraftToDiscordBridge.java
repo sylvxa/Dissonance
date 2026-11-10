@@ -206,12 +206,12 @@ public class MinecraftToDiscordBridge {
     }
 
     public static void onAdvancementAwarded(ServerPlayer player, AdvancementHolder advancement, DisplayInfo displayInfo) {
-        AdvancementType type = displayInfo.getType();
+        AdvancementType type = displayInfo.type();
         Map<String, String> placeholders = Map.of(
                 "%default_announcement%", type.createAnnouncement(advancement, player).getString(),
                 "%default_title%", type.getDisplayName().getString(),
                 "%advancement_name%", Advancement.name(advancement).getString(),
-                "%advancement_description%", displayInfo.getDescription().getString(),
+                "%advancement_description%", displayInfo.description().getString(),
                 "%advancement_type%", type.getSerializedName()
         );
 
