@@ -9,6 +9,7 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.TextColor;
 import net.minecraft.server.players.NameAndId;
 import org.apache.commons.lang3.math.NumberUtils;
 
@@ -45,7 +46,7 @@ public class LinkCommand extends ListenerAdapter {
                 DiscordLinking.addLink(user, profile.id());
 
                 EmbedBuilder builder = new EmbedBuilder();
-                builder.setColor(ChatFormatting.GREEN.getColor());
+                builder.setColor(TextColor.GREEN.getValue());
                 builder.setImage("https://mc-heads.net/head/" + profile.id());
                 builder.setTitle("Your account is linked!");
                 builder.setDescription(String.format("%s <-> %s", event.getUser().getAsMention(), profile.name()));

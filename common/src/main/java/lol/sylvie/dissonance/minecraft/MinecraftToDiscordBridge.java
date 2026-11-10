@@ -15,6 +15,7 @@ import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.advancements.AdvancementType;
 import net.minecraft.advancements.DisplayInfo;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextColor;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.Nullable;
@@ -215,7 +216,8 @@ public class MinecraftToDiscordBridge {
         );
 
         DissonanceConfig.EventConfigValue configValue = DissonanceConfig.EVENT_GAME_ADVANCEMENT;
-        handleEvent(player, configValue, placeholders, configValue.color.get().equalsIgnoreCase("#FFFFFF") ? new Color(type.getChatColor().getColor()) : null);
+        int color = TextColor.fromLegacyFormat(type.getChatColor()).getValue();
+        handleEvent(player, configValue, placeholders, configValue.color.get().equalsIgnoreCase("#FFFFFF") ? new Color(color) : null);
 
     }
 
